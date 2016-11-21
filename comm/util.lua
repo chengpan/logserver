@@ -2,7 +2,8 @@ local redis = require "resty.redis"
 local http = require "resty.http"
 local json = require "cjson.safe"
 
-local mutexdict = ngx.shared.mutexdict
+local mutexdict = ngx.shared.shared_dict
+local domain_cache_dict = ngx.shared.shared_dict
 
 local _M = { _VERSION = '0.01', _AUTHOR = 'enoch' }
 
@@ -22,110 +23,10 @@ _M.mk_sql_datetime = function (datehour)
 	return string.format("%s-%s-%s %s:00:00", year, month, day, hour)
 end
 
-_M.lock_file_to_append = function (file_name)
-	local red = redis:new()
-	red:set_timeout(1000) -- 1 sec
-    local ok, err = red:connect("127.0.0.1", 6379)
-    if not ok then
-        ngx.log(ngx.ERR, "failed to connect: ", err)
-        return false
-    end	
-
-    --缩短key
-    file_name = tostring(ngx.crc32_long(file_name))
-
-    --尝试10次
-    for i = 1, 10 do
-    	local res, err = red:setnx(file_name, "1")
-    	if not res then
-    		ngx.log(ngx.ERR, "set ", file_name, " in redis failed: ", err, ", waiting...", i)
-    		red:close()
-    		red = redis:new()
-			red:set_timeout(1000) -- 1 sec
-		    local ok, err = red:connect("127.0.0.1", 6379)
-		    if not ok then
-		        ngx.log(ngx.ERR, "failed to connect: ", err)
-		        return false
-		    end	
-    	elseif res == 1 then
-    		ngx.log(ngx.DEBUG, "got lock for ", file_name)
-
-    		--设置过期时间500ms
-    		res, err = red:pexpire(file_name, 500)
-	    	if not res then
-	    		ngx.log(ngx.ERR, "set ", file_name, " expire failed: ", err)
-	    		red:close()
-	    		return false
-	    	end
-
-	    	red:set_keepalive(10000, 100)
-	    	return true
-
-    	elseif res == 0 then
-    		ngx.log(ngx.DEBUG, file_name, " still locked, waiting...", i)
-
-    		res, err = red:pttl(file_name)
-	    	if not res then
-	    		ngx.log(ngx.ERR, "check ", file_name, " pttl failed: ", err)
-	    		red:close()
-	    		return false
-	    	end
-
-	    	ngx.log(ngx.DEBUG, "pttl: ", res)
-
-	    	if res < 0 then
-	    		ngx.log(ngx.ERR, "this is not right! pttl returns ", res, ", delete this key!")
-	    		red:del(file_name)
-	    	end
-
-    		ngx.sleep(0.1)
-
-    	else
-    		ngx.log(ngx.ERR, "unknown return: ", res)
-    		red:close()
-    		return false
-    	end
-    end
-
-    ngx.log(ngx.ERR, "still can't get lock to append.",
-    		 ", remote_addr: ", ngx.var.remote_addr,
-    		 ", X-Real-IP: ", ngx.var["X-Real-IP"])
-
-    --避免有时候设置不成功,导致后来永远无法上传
-    red:del(file_name)
-    red:close()
-
-    return false
-end
-
-_M.unlock_file_to_append = function (file_name)
-	local red = redis:new()
-	red:set_timeout(1000) -- 1 sec
-    local ok, err = red:connect("127.0.0.1", 6379)
-    if not ok then
-        ngx.log(ngx.ERR, "failed to connect: ", err)
-        return false
-    end	
-
-    --缩短key
-    file_name = tostring(ngx.crc32_long(file_name))
-
-	local res, err = red:del(file_name)
-	if res ~= 1 then
-		ngx.log(ngx.ERR, "del key ", file_name, " in redis failed: ", err)
-		red:close()
-		return false
-	end
-
-	red:set_keepalive(10000, 100)
-	return true
-
-end
-
 _M.get_mutex_lock = function (file_name)
 
 	for i = 1, 10 do
-		--expire 3s
+		--expire 10s
 		local ok, err, forcible = mutexdict:add(file_name, 1, 3)
 		if ok then
 			ngx.log(ngx.DEBUG, "got mutex for: ", file_name, ", i :", i, ", forcible: ", forcible)
@@ -134,7 +35,7 @@ _M.get_mutex_lock = function (file_name)
 			ngx.log(ngx.WARN, "get mutex failed: ", i, ", err: ", err)
 			if i < 10 
 			then
-				ngx.sleep(0.3)
+				ngx.sleep(1)
 			end
 		end
 	end
@@ -147,19 +48,7 @@ _M.release_mutex_lock = function (file_name)
 	mutexdict:delete(file_name)
 end
 
-_M.read_file_data = function(file_name)
-	if not file_name then
-		ngx.log(ngx.ERR, "no file name")
-		return nil
-	end
-	ngx.log(ngx.DEBUG, "read from ", file_name)
-
-	local f = assert(io.open(file_name, 'r'))
-	local string = f:read("*all")
-	f:close()
-	return string
-end
-
+--alarming system
 _M.send_warning = function(title, content)
 	local msg_table = {
 		id = 10075,
@@ -248,6 +137,39 @@ _M.file_copy = function (src_path, dest_path)
     sock:close()
 
     return status, msg
+end
+
+_M.get_log_dir = function (domain_name)
+    local log_path_table = {
+        [1] = "/data/log_server/download/",
+        [2] = "/data/log_server/download/",
+        [3] = "/data/log_server/download/",
+        [4] = "/data/log_server/download/",
+        [5] = "/data/log_server/download/"
+    }
+
+    local log_path = domain_cache_dict:get(domain_name)
+    if log_path then
+        ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " found in shared dict")
+        return log_path
+    end
+
+    local crc = ngx.crc32_short(domain_name)
+    local index = math.abs(crc % 5) + 1
+    ngx.log(ngx.DEBUG, "index for ", domain_name, " is ", index)
+
+    log_path = log_path_table[index]
+    ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " generated!")
+ 
+    local ok, err, forcible = domain_cache_dict:set(domain_name, log_path)
+    if ok then
+        ngx.log(ngx.DEBUG, "set domain_name<-->log_path success, forcible: ", forcible)
+        return true
+    else
+        ngx.log(ngx.ERR, "set domain_name<-->log_path error, err: ", err)
+    end
+
+    return log_path
 end
 
 return _M

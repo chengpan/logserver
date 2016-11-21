@@ -25,10 +25,13 @@ bfdir="/usr/local/icdncache_svr/log/"
 
 #小文件
 logdir=${sfdir}
+file_prefix="small_"
+file_suffix="_access.log"
 
 if [ -d ${bfdir} ]
 then
 	#大文件
+	file_prefix="big_"
 	logdir=${bfdir}
 fi
 
@@ -85,6 +88,9 @@ else
 	find ${logdir} -mindepth 2 -maxdepth 2 ! -path "*/accesslog/*" -name "ats_*.log" -type f -size +10c -mmin -300 -fprint ${tmp_upload_file_list}
 fi
 
+#上传失败的要重传
+[ -f ${upload_failed_file_list} ] && cat ${upload_failed_file_list} | grep -v "aabbccdd" >> ${tmp_upload_file_list}
+
 declare -i upload_success=0
 declare -i upload_failures=0
 declare -i skiped_files=0
@@ -97,12 +103,19 @@ echo "total log files: " >> ${upload_err_log}
 wc ${tmp_upload_file_list} -l >> ${upload_err_log} 
 while read file 
 do
-	grep "${file}" ${upload_info_file}
+	grep "${file}" ${upload_info_file} > /dev/null
 	
 	if [ $? -eq 0 ]
 	then
 		echo ${file} has been uploaded !
 		let skiped_files++
+		continue
+	fi
+
+	if [ ! -f ${file} ]
+	then
+		echo "${file} does not exist any more" >> ${upload_err_log}
+		sed -e "s#${file}#aabbccdd#g" -i ${upload_failed_file_list}
 		continue
 	fi
 
@@ -115,29 +128,32 @@ do
 
 	time_min=`echo ${file_name} | grep -E -o "[0-9]{12}"`
 	time_hour=`echo ${time_min} | grep -E -o "^[0-9]{10}"`
-	file_name=`echo ${file_name} | sed "s/${time_min}/${time_hour}/g"`
 	file_date=`echo ${time_min} | grep -E -o "^[0-9]{8}"`
+	file_name=${file_prefix}${time_hour}${file_suffix}
 	echo "${file_name}, ${file_date}"
 
+	file_msize=`du -m ${file} | awk '{print $1}'`
+	min_time=10
+	((max_time = file_msize + min_time))
+	echo "curl max time: ${max_time}"
+
 	curl_start_timestamp=`date +%s`
-	curl --silent --connect-timeout 5 --max-time 200 --data-binary @${file} "${upload_server}?domain_name=${domain_name}&file_name=${file_name}&file_date=${file_date}" 2>>${upload_err_log} | grep "upload_success"
+	curl --silent --connect-timeout 3 --max-time ${max_time} --data-binary @${file} "${upload_server}?domain_name=${domain_name}&file_name=${file_name}&file_date=${file_date}" | grep "upload_success"
 	if [ $? -ne 0 ]
 	then
 		#记录出错信息
-		echo >> ${upload_err_log}
-	    echo >> ${upload_err_log}	
 		date >> ${upload_err_log}
 		echo "upload failed" >> ${upload_err_log}
-		echo "curl --silent --max-time 200 --data-binary @${file} ${upload_server}?domain_name=${domain_name}&file_name=${file_name}&file_date=${file_date}" >> ${upload_err_log}
+		echo "curl --silent --connect-timeout 3 --max-time ${max_time} --data-binary @${file} \"${upload_server}?domain_name=${domain_name}&file_name=${file_name}&file_date=${file_date}\"" >> ${upload_err_log}
 		curl_finish_timestamp=`date +%s`
 		curl_run_time=`expr ${curl_finish_timestamp} - ${curl_start_timestamp}`
 		echo "curl_run_time: ${curl_run_time}" >> ${upload_err_log}
 		let upload_failures++
 
 		echo ${file} >> ${upload_failed_file_list}
-		#3次上传失败就报警 同时避免多次报警
+		#3次上传失败就报警
 		num=`grep "${file}" ${upload_failed_file_list} | wc -l`
-		if [ ${num} -gt 3 -a ${num} -lt 5 ]
+		if [ ${num} -gt 5 ]
 		then
 			send_warning "多次上传" "${file} failed ${num} times, iplist: ${iplist}"
 		fi
