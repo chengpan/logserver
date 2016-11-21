@@ -33,6 +33,8 @@ if jit then
 else
 	ngx.say(_VSERSION)
 end
+
+ngx.shared.shared_dict:flush_all()
 --]]
 
 --[[
