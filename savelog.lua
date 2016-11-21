@@ -79,7 +79,7 @@ if not m then
 	ngx.log(ngx.ERR, "regex error: ", err)
 end
 
-local bytes = tonumber(msg)
+local bytes = tonumber(m[0])
 ngx.log(ngx.DEBUG, bytes, " bytes copied!")
 if bytes ~= content_length then
 	ngx.log(ngx.ERR, "wrong! ", bytes, " != ", content_length)
