@@ -51,6 +51,8 @@ end
 --保存路径 log_dir + 日期 + domain + 单个小时的文件 
 --比如 /data2/log_process/download/20161019/www.ucloud.cn/http_access.20161017.log.1  
 local store_dir = util.get_log_dir(domain_name)
+ngx.log(ngx.DEBUG, "save to ", store_dir)
+
 local file_dir  = store_dir..file_date.."/"..domain_name.."/"
 local file_path = file_dir..file_name
 
