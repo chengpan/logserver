@@ -12,6 +12,7 @@ if http_method ~= "POST" then
 end
 
 local content_length = tonumber(ngx.req.get_headers()["Content-Length"])
+ngx.log(ngx.DEBUG, "content_length: ", content_length)
 if not content_length then
 	ngx.log(ngx.ERR, "no content_length ", ngx.req.get_headers()["Content-Length"])
 	ngx.exit(ngx.HTTP_ILLEGAL)
@@ -73,7 +74,12 @@ if status ~= 0 then
 	ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
 
-local bytes = string.atoi(msg)
+local m, err = ngx.re.match(msg, "[0-9]+", "o")
+if not m then
+	ngx.log(ngx.ERR, "regex error: ", err)
+end
+
+local bytes = tonumber(msg)
 ngx.log(ngx.DEBUG, bytes, " bytes copied!")
 if bytes ~= content_length then
 	ngx.log(ngx.ERR, "wrong! ", bytes, " != ", content_length)
