@@ -3,6 +3,7 @@ local mysql = require "resty.mysql"
 local conf  = require "comm/conf"
 local util  = require "comm/util"
 local shell = require "resty/shell"
+local string = require "resty/string"
 
 local http_method = ngx.req.get_method()
 if http_method ~= "POST" then
@@ -70,6 +71,12 @@ local status, msg = util.file_copy(tmp_body_file, file_path)
 if status ~= 0 then
 	ngx.log(ngx.ERR, "status: ", status, ", msg: ", msg)
 	ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
+
+local bytes = string.atoi(msg)
+ngx.log(ngx.DEBUG, bytes, " bytes copied!")
+if bytes ~= content_length then
+	ngx.log(ngx.ERR, "wrong! ", bytes, " != ", content_length)
 end
 
 --release mutex
