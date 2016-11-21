@@ -164,7 +164,6 @@ _M.get_log_dir = function (domain_name)
     local ok, err, forcible = domain_cache_dict:set(domain_name, log_path)
     if ok then
         ngx.log(ngx.DEBUG, "set domain_name<-->log_path success, forcible: ", forcible)
-        return true
     else
         ngx.log(ngx.ERR, "set domain_name<-->log_path error, err: ", err)
     end
