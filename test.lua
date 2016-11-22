@@ -73,7 +73,7 @@ end
 local args = ngx.req.get_uri_args()
 local path = args["path"]
 if not path then
-	ngx.log(ngx.ERR, "give me a path in hdfs, eg: url?path=/logs/20161122/auc.tangdou.com/big_2016112210_access.log")
+	ngx.say("give me a path in hdfs, eg: url?path=/logs/20161122/auc.tangdou.com/big_2016112210_access.log")
 	return
 end
 
