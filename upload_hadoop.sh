@@ -100,6 +100,10 @@ wc -l ${tmp_file_list} | tee -a ${err_log}
 #一一检查上传
 declare -i send_success=0
 declare -i send_failure=0
+
+file_entries=`wc -l ${tmp_file_list} | awk '{print $1}'`
+declare -i file_num=0
+
 while read file_path
 do
 	file_name=`basename ${file_path}` #small_2016112115_access.log
@@ -111,6 +115,8 @@ do
 	file_dir_dir_name=`basename ${file_dir_dir}` #20161121
 	file_date=${file_dir_dir_name} #20161121
 
+	let file_num++
+	echo "${file_num} of ${file_entries} at `date`"
 	echo "${file_date}, ${domain_name}, ${file_name}"
 
 	yes_to_send=`curl --silent "${send_request_url}?request=lock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"`
