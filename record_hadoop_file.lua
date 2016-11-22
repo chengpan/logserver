@@ -13,7 +13,7 @@ if not domain_name or not file_name or not file_date then
 	ngx.exit(ngx.HTTP_ILLEGAL)
 end
 
-local regex_expr = '^(small|big)_([0-9]{10})_access\.log$'
+local regex_expr = [=[^(small|big)_([0-9]{10})_access\.log$]=]
 local m = ngx.re.match(file_name, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "file_name not match regex: ", regex_expr, "file_name: ", file_name)
