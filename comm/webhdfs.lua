@@ -28,3 +28,5 @@ _M.get_status = function (path)
 
 	return res_json 
 end
+
+return _M
