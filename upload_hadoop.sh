@@ -56,8 +56,8 @@ echo $$ > ${process_pid}
 echo "work starts here, at `date`" | tee -a ${err_log}
 start_timestamp=`date +%s`
 
-#查找日志文件大于100M或者30min没有更新了
-find ${download_dir} -type f \( -size +100M -o -mmin +30 \) -fprint ${tmp_file_list}
+#查找日志文件10min没有更新了
+find ${download_dir} -type f  -mmin +10 -fprint ${tmp_file_list}
 wc -l ${tmp_file_list} | tee -a ${err_log}
 
 #file_path: /data/log_server/download/20161121/www.liebao.cn/small_2016112115_access.log
