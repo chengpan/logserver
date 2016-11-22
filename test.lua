@@ -1,5 +1,6 @@
 local util  = require "comm/util"
 local webhdfs  = require "comm/webhdfs"
+local json  = require "cjson.safe"
 
 --[[
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
@@ -78,7 +79,7 @@ if not path then
 end
 
 local ret = webhdfs.get_status(path)
-ngx.say(ret)
+ngx.say(json.encode(ret))
 
 
 
