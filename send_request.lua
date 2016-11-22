@@ -35,6 +35,7 @@ if request == "lock" then
 end
 
 if request == "unlock" then
+	ngx.log(ngx.DEBUG, "release mutex for: ", lock_file_key)
 	mutex_dict:delete(lock_file_key)
 	ngx.exit(ngx.HTTP_OK)
 end
