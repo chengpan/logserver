@@ -10,6 +10,7 @@ function send_warning()
 if [ $# -ne 3 ]
 then
 	echo "give me a download path and a tempory path and a working log path"
+	exit
 fi
 
 download_dir=$1"/"
