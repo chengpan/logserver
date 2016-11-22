@@ -1,5 +1,5 @@
 local util  = require "comm/util"
-local util  = require "comm/webhdfs"
+local webhdfs  = require "comm/webhdfs"
 
 --[[
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
