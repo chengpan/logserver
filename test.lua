@@ -1,6 +1,7 @@
 local util  = require "comm/util"
+local util  = require "comm/webhdfs"
 
----[[
+--[[
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
 ngx.log(ngx.DEBUG, "test lua file at: ", util.get_datetime())
 
@@ -40,7 +41,7 @@ ngx.shared.shared_dict:flush_all()
 --[[
 local src_ip = ngx.var["X-Real-IP"] or ngx.var.remote_addr
 util.send_warning("cdn告警", src_ip.." says hello, from openresty")
---]]
+
 
 local args = ngx.req.get_uri_args()
 local dest_path = args["dest_path"]
@@ -64,5 +65,26 @@ local status, msg = util.file_copy(tmp_body_file, dest_path)
 if status ~= 0 then
 	ngx.log(ngx.ERR, "status: ", status, ", msg: ", msg)
 end
+
+--]]
+
+
+--测试webhdfs
+local args = ngx.req.get_uri_args()
+local path = args["path"]
+if not path then
+	ngx.log(ngx.ERR, "give me a path in hdfs, eg: url?path=/logs/20161122/auc.tangdou.com/big_2016112210_access.log")
+	return
+end
+
+local ret = webhdfs.get_status(path)
+
+for k,v in pairs(ret) do
+	ngx.say(k.." : "..v)
+end
+
+
+
+
 
 
