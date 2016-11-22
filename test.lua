@@ -78,9 +78,10 @@ if not path then
 end
 
 local ret = webhdfs.get_status(path)
+ngx.say("http_status : ", ret.http_status)
 
-for k,v in pairs(ret) do
-	ngx.say(k.." : "..v)
+for k,v in pairs(ret.FileStatus) do
+	ngx.say(k, " : ", v)
 end
 
 
