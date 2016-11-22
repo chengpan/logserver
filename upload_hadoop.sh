@@ -20,7 +20,8 @@ err_log=${working_log_dir}"err_log"
 tmp_file_list=${working_log_dir}"tmp_file_list"
 process_pid=${working_log_dir}"process_pid"
 process_busy=${working_log_dir}"process_busy"
-send_request_url="http://106.75.7.142/send_request.lua"
+send_request_url="http://10.9.139.51/send_request.lua"
+record_file_url="http://10.9.139.51/record_hadoop_file.lua"
 hadoop_logs_dir="/logs/"
 
 echo "download_dir: ${download_dir}, where you store your logs"
@@ -29,6 +30,7 @@ echo "working_log_dir: ${working_log_dir}, where I log everything in order to de
 echo "err_log: ${err_log}, where I record anything worth noticing"
 echo "tmp_file_list: ${tmp_file_list}, list files that need sending to hadoop"
 echo "send_request_url: ${send_request_url}, request before sending to hadoop, like a mutex"
+echo "record_file_url: ${record_file_url}, record uploaded file in hadoop to mysql"
 echo "hadoop_logs_dir: ${hadoop_logs_dir}, where hadoop store its logs"
 echo "process_pid: ${process_pid}, the pid of current working process, $$"
 echo "process_busy: ${process_busy}, record message where two working process collide"
@@ -135,6 +137,14 @@ do
 	fi
 
 	curl --silent "${send_request_url}?request=unlock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"
+	
+	record_success=`curl --silent "${record_file_url}?file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"`
+	if [ "${record_success}" != "record_success" ]
+	then
+		echo "record file to mysql failed, msg: ${record_success}" | tee -a ${err_log}
+		echo "curl --silent \"${record_file_url}?file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}\"" | tee -a ${err_log}
+		let send_failure++
+	fi
 done < ${tmp_file_list}	
 
 finish_timestamp=`date +%s`
