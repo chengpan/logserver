@@ -34,7 +34,7 @@ if request == "lock" then
 	ngx.exit(ngx.HTTP_OK)
 end
 
-if request == "lock" then
+if request == "unlock" then
 	mutex_dict:delete(lock_file_key)
 	ngx.exit(ngx.HTTP_OK)
 end
