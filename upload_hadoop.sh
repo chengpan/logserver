@@ -119,7 +119,7 @@ do
 
 	echo "${file_date}, ${domain_name}, ${file_name}"
 
-	yes_to_send=`curl --silent ${send_request_url}?request=lock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}`
+	yes_to_send=`curl --silent "${send_request_url}?request=lock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"`
 	if [ "${yes_to_send}" != "yes_to_send" ]
 	then
 		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
@@ -141,6 +141,8 @@ do
 		let send_success++
 		rm -f ${file_path}
 	fi
+
+	curl --silent "${send_request_url}?request=unlock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"
 done < ${tmp_file_list}	
 
 finish_timestamp=`date +%s`
