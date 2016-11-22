@@ -24,7 +24,7 @@ _M.get_status = function (path)
 	end
 
 	--添加http status选项
-	res_json.http_status = res.status
+	res_json.httpStatus = res.status
 
 	return res_json 
 end
