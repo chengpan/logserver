@@ -2,8 +2,8 @@ local redis = require "resty.redis"
 local http = require "resty.http"
 local json = require "cjson.safe"
 
-local mutexdict = ngx.shared.shared_dict
-local domain_cache_dict = ngx.shared.shared_dict
+local mutex_dict = ngx.shared.mutex_dict
+local domain_path_map_dict = ngx.shared.domain_path_map_dict
 
 local _M = { _VERSION = '0.01', _AUTHOR = 'enoch' }
 
@@ -27,7 +27,7 @@ _M.get_mutex_lock = function (file_name)
 
 	for i = 1, 10 do
 		--expire 10s
-		local ok, err, forcible = mutexdict:add(file_name, 1, 3)
+		local ok, err, forcible = mutex_dict:add(file_name, 1, 10)
 		if ok then
 			ngx.log(ngx.DEBUG, "got mutex for: ", file_name, ", i :", i, ", forcible: ", forcible)
 			return true
@@ -45,7 +45,7 @@ _M.get_mutex_lock = function (file_name)
 end
 
 _M.release_mutex_lock = function (file_name)
-	mutexdict:delete(file_name)
+	mutex_dict:delete(file_name)
 end
 
 --alarming system
@@ -148,7 +148,7 @@ _M.get_log_dir = function (domain_name)
         [5] = "/data/log_server/download/"
     }
 
-    local log_path = domain_cache_dict:get(domain_name)
+    local log_path = domain_path_map_dict:get(domain_name)
     if log_path then
         ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " found in shared dict")
         return log_path
@@ -161,7 +161,7 @@ _M.get_log_dir = function (domain_name)
     log_path = log_path_table[index]
     ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " generated!")
  
-    local ok, err, forcible = domain_cache_dict:set(domain_name, log_path)
+    local ok, err, forcible = domain_path_map_dict:set(domain_name, log_path)
     if ok then
         ngx.log(ngx.DEBUG, "set domain_name<-->log_path success, forcible: ", forcible)
     else

@@ -7,194 +7,163 @@ function send_warning()
 	curl -H 'Accept:application/json' --data-urlencode "id=10075" --data-urlencode "title=${title}" --data-urlencode "content=${content}" http://106.75.0.234/monitor.cgi
 }
 
-download_dir="/data3/log_process/download/"
-ufile_info_dir="/data4/log_process/upload/"
-ufile_upload_tmp_dir=${ufile_info_dir}"upload_tmp/"
-ufile_err_log=${ufile_info_dir}"err_log"
-tmp_ufile_file_list=${ufile_info_dir}"tmp_ufile_file_list"
-tmp_ufile_tgz_list=${ufile_info_dir}"tmp_ufile_tgz_list"
-tar_failure_file_list=${ufile_info_dir}"tar_failure_file_list"
-ufile_process_pid=${ufile_info_dir}"ufile_process_pid"
-ufile_process_busy=${ufile_info_dir}"ufile_process_busy"
-ufile_notify_server_url="http://106.75.0.234:80/ufile_record.lua"
-ufile_check_upload_status_url="http://106.75.0.234:80/check_upload_status.lua"
-ufile_bucket="cdnlogs"
+if [ $# -ne 3 ]
+then
+	echo "give me a download path and a tempory path and a working log path"
+fi
 
-#存放log及各种信息
-[ -d ${ufile_info_dir} ] || mkdir ${ufile_info_dir}
-[ -d ${ufile_upload_tmp_dir} ] || mkdir ${ufile_upload_tmp_dir}
+download_dir=$1"/"
+temp_log_dir=$2"/"
+working_log_dir=$3"/"
+err_log=${working_log_dir}"err_log"
+tmp_file_list=${working_log_dir}"tmp_file_list"
+process_pid=${working_log_dir}"process_pid"
+process_busy=${working_log_dir}"process_busy"
+send_request_url="http://106.75.7.142/send_request.lua"
+hadoop_logs_dir="/logs/"
+
+echo "download_dir: ${download_dir}, where you store your logs"
+echo "temp_log_dir: ${temp_log_dir}, where I move the logs there and send them to hadoop"
+echo "working_log_dir: ${working_log_dir}, where I log everything in order to debug and info"
+echo "err_log: ${err_log}, where I record anything worth noticing"
+echo "tmp_file_list: ${tmp_file_list}, list files that need sending to hadoop"
+echo "send_request_url: ${send_request_url}, request before sending to hadoop, like a mutex"
+echo "hadoop_logs_dir: ${hadoop_logs_dir}, where hadoop store its logs"
+echo "process_pid: ${process_pid}, the pid of current working process, $$"
+echo "process_busy: ${process_busy}, record message where two working process collide"
+
+[ -d ${working_log_dir} ] || mkdir -p ${working_log_dir}
 
 #保证只有一个进程在上传
-if [ -f ${ufile_process_pid} ]
+if [ -f ${process_pid} ]
 then
-	echo "${ufile_process_pid} exists" >> ${ufile_process_busy}
-	date >> ${ufile_process_busy}
-	pid=`cat ${ufile_process_pid}`
+	echo "${process_pid} exists" | tee -a ${process_busy}
+	date | tee -a ${process_busy}
+	pid=`cat ${process_pid}`
 	found=`ps ax | awk '{ print $1 }' | grep -e "^${pid}$"`
 	if [ -n "${found}" ]
 	then
-		echo "upload process exists! pid = ${pid}, this is serious !!!" >> ${ufile_process_busy}
+		echo "upload process exists! pid = ${pid}, this is serious !!!" | tee -a ${process_busy}
 		exit
 	else
-		echo "upload process doesnot exist! crashed ???" >> ${ufile_process_busy}
+		echo "upload process doesnot exist! crashed ???" | tee -a ${process_busy}
 	fi
 fi
 
-echo $$ > ${ufile_process_pid}
+echo $$ > ${process_pid}
 
-echo "work starts here"
-rm -rf ${HOME}/.ufile/mput
-
-#查找上2/3小时之前的日志
-rm -f ${tmp_ufile_file_list}
-time_2str=`date -d "-2 hour" "+%Y%m%d%H"`
-time_1str=`date -d "-1 hour" "+%Y%m%d%H"`
-find ${download_dir} -type f \( -name "*${time_1str}*" -o -mmin +60 \) -fprint ${tmp_ufile_file_list}
-
-declare -i ufile_success=0
-declare -i ufile_failures=0
-
-echo >> ${ufile_err_log}
-echo "ufile started at : " >> ${ufile_err_log}
-date >> ${ufile_err_log}
+echo "work starts here, at `date`" | tee -a ${err_log}
 start_timestamp=`date +%s`
-echo "total log files: " >> ${ufile_err_log}
-wc ${tmp_ufile_file_list} -l >> ${ufile_err_log}
 
-#把所有新生产的文件都放到临时目录去sync
-#使用多进程,打包太慢了
-tmp_fifo="/tmp/$$.fifo"
-mkfifo ${tmp_fifo}
-exec 6<>${tmp_fifo}
-rm -f ${tmp_fifo}
-for ((i=0;i<5;i++))
+#查找日志文件大于100M或者30min没有更新了
+find ${download_dir} -type f \( -size +100M -o -mmin +30 \) -fprint ${tmp_file_list}
+wc -l ${tmp_file_list} | tee -a ${err_log}
+
+#file_path: /data/log_server/download/20161121/www.liebao.cn/small_2016112115_access.log
+#先把要上传的文件mv至临时目录
+while read file_path
 do
-	echo ""
-done >&6
-while read file
-do
-	upload_status=`curl --silent ${ufile_check_upload_status_url}"?file="${file} | grep "found_in_db"`
-	if [ -n "${upload_status}" ]
+	file_name=`basename ${file_path}` #small_2016112115_access.log
+	file_dir=`dirname ${file_path}` #/data/log_server/download/20161121/www.liebao.cn
+	file_dir_name=`basename ${file_dir}` #www.liebao.cn
+	domain_name=${file_dir_name} #www.liebao.cn
+
+	file_dir_dir=`dirname ${file_dir}` #/data/log_server/download/20161121
+	file_dir_dir_name=`basename ${file_dir_dir}` #20161121
+	file_date=${file_dir_dir_name} #20161121
+
+	echo "${file_date}, ${domain_name}, ${file_name}"
+
+	mv_target_dir=${temp_log_dir}${file_date}/${domain_name}/
+	mv_target_path=${mv_target_dir}${file_name}
+
+	[ -d ${mv_target_dir} ] || mkdir -p ${mv_target_dir}
+
+	if [ -f ${mv_target_path} ]
 	then
-		rm -f ${file}
+		echo "${mv_target_path} exists!, last time failed ?" | tee -a ${err_log}
+	else
+		mv ${file_path} ${mv_target_path}
+	fi
+
+
+	yes_to_send=`curl --silent ${send_request_url}?file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}`
+	if [ "${yes_to_send}" != "yes_to_send" ]
+	then
+		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
 		continue
 	fi
 
-	file_name=`basename ${file}`
-	file_dir=`dirname ${file}`
-	file_dir_name=`basename ${file_dir}`
+done < ${tmp_file_list}	
 
-	gz_file_dir=${ufile_upload_tmp_dir}${file_dir_name}"/"
-	gz_file_path=${gz_file_dir}${file_name}
-	[ -d ${gz_file_dir} ] || mkdir -p ${gz_file_dir}
+echo "mv completed !, now wait for 5s so the moved files won't be appending data"
+sleep 5
+date | tee -a ${err_log}
 
-	left_file=`find ${gz_file_dir} -type f -name "*.gz" | wc -l`
-	if [ ${left_file} -eq 0 ]
+find ${temp_log_dir} -type f -fprint ${tmp_file_list}
+wc -l ${tmp_file_list} | tee -a ${err_log}
+
+#一一检查上传
+declare -i send_success=0
+declare -i send_failure=0
+while read file_path
+do
+	file_name=`basename ${file_path}` #small_2016112115_access.log
+	file_dir=`dirname ${file_path}` #/data/log_server/download/20161121/www.liebao.cn
+	file_dir_name=`basename ${file_dir}` #www.liebao.cn
+	domain_name=${file_dir_name} #www.liebao.cn
+
+	file_dir_dir=`dirname ${file_dir}` #/data/log_server/download/20161121
+	file_dir_dir_name=`basename ${file_dir_dir}` #20161121
+	file_date=${file_dir_dir_name} #20161121
+
+	echo "${file_date}, ${domain_name}, ${file_name}"
+
+	yes_to_send=`curl --silent ${send_request_url}?request=lock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}`
+	if [ "${yes_to_send}" != "yes_to_send" ]
 	then
-		split ${file} -b 200M -d -a 4 ${gz_file_path}  2>>${ufile_err_log}
-		if [ $? -ne 0 ]
-		then
-			echo "split ${file} failed" >> ${ufile_err_log}
-			rm -rf ${gz_file_dir}
-		fi
+		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
+		let send_failure++
+		continue
 	fi
 
-done < ${tmp_ufile_file_list}
+	hadoop_dest_path=${hadoop_logs_dir}${file_date}/${domain_name}/${file_name}
 
-rm -f ${tmp_ufile_file_list}
-find ${ufile_upload_tmp_dir} -type f ! -name "*.gz" -fprint ${tmp_ufile_file_list}
-wc -l ${tmp_ufile_file_list}
-while read file
-do
-	read -u6
-	{
-		gzip --fast ${file}
-		if [ $? -ne 0 ]
-		then
-			echo "gzip --fast ${file} failed, try again" >> ${ufile_err_log}
-			gzip --fast ${file}
-		fi
-		echo "" >&6
-	}&
-done < ${tmp_ufile_file_list}
-wait
+	echo "appending ${file_path} to ${hadoop_dest_path}"
 
-#I don't know why I do it again
-rm -f ${tmp_ufile_file_list}
-find ${ufile_upload_tmp_dir} -type f ! -name "*.gz" -fprint ${tmp_ufile_file_list}
-wc -l ${tmp_ufile_file_list}
-while read file
-do
-	read -u6
-	{
-		gzip --fast ${file}
-		if [ $? -ne 0 ]
-		then
-			echo "gzip --fast ${file} failed, try again" >> ${ufile_err_log}
-			gzip --fast ${file}
-		fi
-		echo "" >&6
-	}&
-done < ${tmp_ufile_file_list}
-wait
+	hdfs dfs -appendToFile ${file_path} ${hadoop_dest_path} >> ${err_log} 2>&1
 
-exec 6>&-
-
-find ${ufile_upload_tmp_dir} -type f ! -name "*.gz" -exec gzip --fast {} \;
-find ${ufile_upload_tmp_dir} -type f ! -name "*.gz" -exec rm -f {} \;
-echo "sync data at : " >> ${ufile_err_log}
-date >> ${ufile_err_log}
-
-#上传文件了！
-/usr/local/bin/filemgr-linux64 --action sync --bucket ${ufile_bucket} --dir ${ufile_upload_tmp_dir} --trimpath ${ufile_upload_tmp_dir} >> ${ufile_err_log}
-
-#查找ufile_upload_tmp_dir下的所有文件, 一一验证是否已经上传成功,成功就写入数据库并删除文件, 否则不删除文件
-rm -f ${tmp_ufile_tgz_list}
-find ${ufile_upload_tmp_dir} -type f -name "*.gz" -fprint ${tmp_ufile_tgz_list}
-
-#检查该目录下的所有gz文件有没有上传成功
-while read file
-do
-	file_name=`basename ${file}`
-	file_dir=`dirname ${file}`
-	file_dir_name=`basename ${file_dir}`
-
-	file_key=${file_dir_name}"/"${file_name}
-	found=`/usr/local/bin/filemgr-linux64 --action check --bucket ${ufile_bucket} --key ${file_key} | grep "ErrMsg"`
-	if [ -z "${found}" ]
+	if [ $? -ne 0 ]
 	then
-		#found in ufile, upload success !
-		notify_server=`curl --silent ${ufile_notify_server_url}"?file_key="${file_key} | grep "upload_success"`
-		if [ -n "${notify_server}" ]
-		then
-			#echo "notify_server for ${file_key} succeed" >> ${ufile_err_log}
-			let ufile_success++
-			rm -f ${file}
-		else
-			echo "notify_server for ${file_key} failed !" >> ${ufile_err_log}
-			let ufile_failures++
-		fi
+		echo "hdfs dfs -appendToFile ${file_path} ${hadoop_dest_path} error !" | tee -a ${err_log}
+		let send_failure++
 	else
-		echo "${file_key} not found! in ufile cloud. this is WRONG !!!" >> ${ufile_err_log}
-		let ufile_failures++
-	fi		
+		let send_success++
+		rm -f ${file_path}
+	fi
+done < ${tmp_file_list}	
 
-done < ${tmp_ufile_tgz_list}
-
-echo "finish sync and notify server at : " >> ${ufile_err_log}
-date >> ${ufile_err_log}
 finish_timestamp=`date +%s`
 run_time=`expr ${finish_timestamp} - ${start_timestamp}`
-echo "run_time: ${run_time}, success : ${ufile_success}, failures: ${ufile_failures}" >> ${ufile_err_log}
 
-if [ ${ufile_failures} -gt 0 -o ${run_time} -gt 3600 ]
+echo "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}" | tee -a ${err_log}
+
+if [ ${send_failure} -gt 0 -o ${run_time} -gt 1800 ]
 then
-	send_warning "ufile上传" "run_time: ${run_time}, success : ${ufile_success}, failures: ${ufile_failures}"
+	send_warning "hadoop上传" "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}"
 fi
 
-#清除上传shell的pid文件
-rm -f ${ufile_process_pid}
-
-#删除2天前的下载日志
+#删除2天前日志目录
 time_str=`date -d "-2 day" "+%Y%m%d"`
 [ -d ${download_dir}${time_str} ] && rm -rf ${download_dir}${time_str}
+[ -d ${temp_log_dir}${time_str} ] && rm -rf ${temp_log_dir}${time_str}
+
+#错误日志不要太长
+file_entries=`wc -l ${err_log} | awk '{print $1}'`
+if [ $file_entries -gt 150000 ]
+then
+	sed -e '1,50000d' -i ${err_log}
+fi
+
+#进程结束
+rm -f ${process_pid}

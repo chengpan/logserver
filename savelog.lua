@@ -56,7 +56,7 @@ local store_dir = util.get_log_dir(domain_name)
 local file_dir  = store_dir..file_date.."/"..domain_name.."/"
 local file_path = file_dir..file_name
 
-local lock_file_key = domain_name..file_name
+local lock_file_key = "download"..domain_name..file_name
 
 ngx.log(ngx.DEBUG, "appending to ", file_path)
 

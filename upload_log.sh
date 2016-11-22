@@ -151,7 +151,7 @@ do
 		let upload_failures++
 
 		echo ${file} >> ${upload_failed_file_list}
-		#3次上传失败就报警
+		#同一文件多次上传失败报警
 		num=`grep "${file}" ${upload_failed_file_list} | wc -l`
 		if [ ${num} -gt 5 ]
 		then
