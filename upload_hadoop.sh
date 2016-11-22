@@ -86,15 +86,6 @@ do
 	else
 		mv ${file_path} ${mv_target_path}
 	fi
-
-
-	yes_to_send=`curl --silent ${send_request_url}?file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}`
-	if [ "${yes_to_send}" != "yes_to_send" ]
-	then
-		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
-		continue
-	fi
-
 done < ${tmp_file_list}	
 
 echo "mv completed !, now wait for 5s so the moved files won't be appending data"
