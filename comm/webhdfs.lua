@@ -29,4 +29,28 @@ _M.get_status = function (path)
 	return res_json 
 end
 
+_M.get_file_size = function (path)
+	local file_status = _M.get_status(path)
+	if not file_status then
+		ngx.log(ngx.ERR, "get_status err")
+		return -1
+	end
+
+	if file_status.httpStatus ~= 200 then
+		if file_status.httpStatus == 404 then
+			ngx.log(ngx.ERR, "file not exit? ", json.encode(file_status))
+			return 0
+		end
+			ngx.log(ngx.ERR, "http status error ", json.encode(file_status))
+			return -1
+	end
+
+	if file_status.FileStatus.type ~= "FILE" then
+		ngx.log(ngx.ERR, path, "is not file ", json.encode(file_status))
+	end
+
+	return file_status.FileStatus.length
+
+end
+
 return _M

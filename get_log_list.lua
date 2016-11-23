@@ -2,6 +2,7 @@ local json  = require "cjson.safe"
 local mysql = require "resty.mysql"
 local conf  = require "comm/conf"
 local util  = require "comm/util"
+local webhdfs  = require "comm/webhdfs"
 local shell = require "resty/shell"
 local string = require "resty/string"
 
@@ -73,7 +74,14 @@ if #res < 1 then
 	ngx.exit(ngx.HTTP_OK)
 end
 
+for i,v in ipairs(res) do
+	v.file_size = webhdfs.get_file_size(v.hdfs_path)
+	v.segments = math.ceil(v.file_size/conf.segment_size)
+	v.hdfs_path = nil
+end
+
 --返回成功信息
+ngx.print(json.encode(res))
 ngx.exit(ngx.HTTP_OK)
 
 
