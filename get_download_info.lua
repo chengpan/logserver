@@ -14,7 +14,7 @@ if not id then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)
 end
 
-local query_sql = "select * from tb_hadoop_files where id = "..id
+local query_sql = "select hdfs_path from tb_hadoop_files where id = "..id
 ngx.log(ngx.DEBUG, "query_sql: ", query_sql)
 
 local db, err = mysql:new()
@@ -65,10 +65,10 @@ segments = math.ceil(file_size/conf.segment_size)
 local download_url_table = {}
 
 --只提供分片下载的链接
---download_url_table[#download_url_table + 1] = conf.log_download_url.."?id="..id
+download_url_table[#download_url_table + 1] = conf.log_download_host..hdfs_path..".gz"
 
 for i = 0, segments - 1 do
-	download_url_table[#download_url_table + 1] = conf.log_download_url.."?id="..id.."&seg="..i
+	download_url_table[#download_url_table + 1] = string.format("%s.seg%03d.gz", conf.log_download_host..hdfs_path, i)
 end
 
 ngx.print(json.encode(download_url_table))
