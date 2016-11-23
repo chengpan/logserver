@@ -49,7 +49,7 @@ if #res ~= 1 then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)	
 end
 
-local hdfs_path = res[0].hdfs_path
+local hdfs_path = res[1].hdfs_path
 
 ngx.log(ngx.DEBUG, "file for ", id, " is ", hdfs_path)
 
