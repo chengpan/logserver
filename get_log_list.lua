@@ -28,8 +28,7 @@ if domain_name then
 end
 
 if start_time and end_time then
-	local condition_str = string.format(" and date_hour >= from_unixtime(%d) and date_hour <= from_unixtime(%d)",
-											start_time, end_time)
+	local condition_str = string.format("%d < %d", start_time, end_time)--string.format(" and date_hour >= from_unixtime(%d) and date_hour <= from_unixtime(%d)",	start_time, end_time)
 	query_sql = query_sql..condition_str
 end
 
