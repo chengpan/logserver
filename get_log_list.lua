@@ -4,7 +4,7 @@ local conf  = require "comm/conf"
 local util  = require "comm/util"
 local webhdfs  = require "comm/webhdfs"
 local shell = require "resty/shell"
-local string = require "resty/string"
+local resty_string = require "resty/string"
 
 local args = ngx.req.get_uri_args()
 
@@ -28,7 +28,7 @@ if domain_name then
 end
 
 if start_time and end_time then
-	local condition_str = string.format("%d < %d", start_time, end_time)--string.format(" and date_hour >= from_unixtime(%d) and date_hour <= from_unixtime(%d)",	start_time, end_time)
+	local condition_str = string.format(" and date_hour >= from_unixtime(%d) and date_hour <= from_unixtime(%d)",	start_time, end_time)
 	query_sql = query_sql..condition_str
 end
 
