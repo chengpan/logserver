@@ -14,6 +14,6 @@ _M.hadoop_db =
 _M.hadoop_root = "/logs/"
 _M.mysql_max_results = 500
 _M.segment_size = 500*1024*1024
-_M.log_download_url = "http://106.75.7.142/log_download.lua"
+_M.log_download_url = "http://106.75.7.142/download_log.lua"
 
 return _M
