@@ -12,5 +12,6 @@ _M.hadoop_db =
 }
 
 _M.hadoop_root = "/logs/"
+_M.mysql_max_results = 500
 
 return _M

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#设置环境
+source /etc/profile
+
 function send_warning()
 {
 	title=$1
