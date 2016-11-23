@@ -96,7 +96,7 @@ if status ~= 0 then
 end
 
 local exec_location = conf.gzip_download_location..gz_relative_path..".gz"
-ngx.log(ngx.EDBUG, "localtion: ", exec_location)
+ngx.log(ngx.DEBUG, "localtion: ", exec_location)
 return ngx.exec(exec_location)
 
 
