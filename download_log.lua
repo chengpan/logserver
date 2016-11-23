@@ -13,7 +13,7 @@ ngx.log(ngx.DEBUG, "request_uri: ", request_uri)
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.seg000.gz
 
 local seg = false
-local regex_expr = [=[^(.*)(\.seg[0-9]{3})?\.gz$]=]
+local regex_expr = [=[^(.*_access\.log)(\.seg[0-9]{3})?\.gz$]=]
 local m = ngx.re.match(request_uri, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "request_uri not match regex: ", regex_expr, "request_uri: ", request_uri)
