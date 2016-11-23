@@ -24,7 +24,7 @@ ngx.log(ngx.DEBUG, "m[1]: ", m[1], "m[2]: ", m[2])
 
 local hdfs_path = m[1]
 
-if #m[2] > 1 then
+if m and #m[2] > 1 then
 	seg = tonumber(string.sub(m[2], -3, -1))
 end
 
