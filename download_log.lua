@@ -41,6 +41,7 @@ if file_size <= 0 then
 	ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
+local max_seg = math.ceil(file_size/conf.segment_size) - 1
 ngx.log(ngx.DEBUG, "file_size: ", file_size, ", max_seg: ", max_seg)
 
 --curl --silent 'http://106.75.31.237:50070/webhdfs/v1/logs/20161123/api.dmzj.com/small_2016112308_access.log?op=OPEN' -L -o aa.log
@@ -86,8 +87,8 @@ local function remove_file(premature, file_name)
 		ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
 	end	
 end
+
 --确定是否是最后一个片段 最后一个片段不应该保留
-local max_seg = math.ceil(file_size/conf.segment_size) - 1
 if seg == max_seg then
 	ngx.log(ngx.DEBUG, "this last segment needs removing: ", max_seg)
 	local ok, err = ngx.timer.at(60, remove_file, gz_log_path)
