@@ -77,7 +77,6 @@ end
 for i,v in ipairs(res) do
 	v.file_size = webhdfs.get_file_size(v.hdfs_path)
 	v.segments = math.ceil(v.file_size/conf.segment_size)
-	v.hdfs_path = nil
 end
 
 --返回成功信息
