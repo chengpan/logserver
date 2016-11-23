@@ -12,7 +12,7 @@ ngx.log(ngx.DEBUG, "request_uri: ", request_uri)
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.gz
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.seg000.gz
 
-local seg = false
+local seg = nil
 local regex_expr = [=[^(.*_access\.log)(\.seg[0-9]{3})?\.gz$]=]
 local m = ngx.re.match(request_uri, regex_expr, "o")
 if not m then
@@ -24,7 +24,7 @@ ngx.log(ngx.DEBUG, "m[1]: ", m[1], ", m[2]: ", m[2])
 
 local hdfs_path = m[1]
 
-if m and #m[2] > 1 then
+if type(m[2]) == "string" then
 	seg = tonumber(string.sub(m[2], -3, -1))
 end
 
