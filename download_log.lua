@@ -20,6 +20,8 @@ if not m then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)	
 end
 
+ngx.log(ngx.DEBUG, "m[1]: ", m[1], "m[2]: ", m[2])
+
 local hdfs_path = m[1]
 
 if #m[2] > 1 then
