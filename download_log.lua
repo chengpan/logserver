@@ -72,9 +72,9 @@ ngx.log(ngx.DEBUG, "cmd: ", cmd)
 
 local args = {socket = "unix:/tmp/shell.sock", timeout = 60000}
 local status, out, err = shell.execute(cmd, args)
-if status ~= 0 then
+if status ~= 0 and status ~= 256 then
 	ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
-	shell.execute("rm -f "..log_path.."*", args)
+	--shell.execute("rm -f "..log_path.."*", args)
 end
 
 local function remove_file(premature, file_name)
