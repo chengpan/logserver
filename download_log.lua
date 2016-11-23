@@ -20,7 +20,7 @@ if not m then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)	
 end
 
-ngx.log(ngx.DEBUG, "m[1]: ", m[1], "m[2]: ", m[2])
+ngx.log(ngx.DEBUG, "m[1]: ", m[1], ", m[2]: ", m[2])
 
 local hdfs_path = m[1]
 
@@ -28,8 +28,8 @@ if m and #m[2] > 1 then
 	seg = tonumber(string.sub(m[2], -3, -1))
 end
 
-ngx.log(ngx.DEBUG, "hdfs_path: ", hdfs_path, ", seg: ")
-ngx.exit(ngx.HTTP_OK)
+ngx.log(ngx.DEBUG, "hdfs_path: ", hdfs_path, ", seg: ", seg)
+return
 
 local file_size = webhdfs.get_file_size(hdfs_path)
 
