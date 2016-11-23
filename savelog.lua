@@ -58,7 +58,7 @@ local file_path = file_dir..file_name
 
 local lock_file_key = "download"..domain_name..file_name
 
-ngx.log(ngx.DEBUG, "appending to ", file_path)
+ngx.log(ngx.DEBUG, "appending ", tmp_body_file, " to ", file_path)
 
 
 --get mutex
