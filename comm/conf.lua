@@ -15,7 +15,7 @@ _M.hadoop_root = "/logs/"
 _M.mysql_max_results = 500
 _M.segment_size = 500*1024*1024
 _M.log_download_host = "http://106.75.7.142"
-_M.gzip_log_dir = "/data/log_server/gzip_log/"
-_M.gzip_download_location = "/gzip_log/"
+_M.gzip_log_dir = "/data/log_server/logs/"
+_M.gzip_download_location = "/logs/"
 
 return _M
