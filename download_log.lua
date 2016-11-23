@@ -34,10 +34,6 @@ local gz_log_path = document_root..request_uri
 local log_path = string.sub(gz_log_path, 1, -4)
 ngx.log(ngx.DEBUG, "log_path: ", log_path, ", gz_log_path: ", gz_log_path)
 
-if true then
-	return
-end
-
 --检查文件是否存在
 local file_size = webhdfs.get_file_size(hdfs_path)
 if file_size <= 0 then
@@ -45,10 +41,7 @@ if file_size <= 0 then
 	ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
---确定是否是最后一个片段 最后一个片段不应该保留
-local segments = math.ceil(file_size/conf.segment_size)
-
-ngx.log(ngx.DEBUG, "file_size: ", file_size, ", segments: ", segments)
+ngx.log(ngx.DEBUG, "file_size: ", file_size, ", max_seg: ", max_seg)
 
 --curl --silent 'http://106.75.31.237:50070/webhdfs/v1/logs/20161123/api.dmzj.com/small_2016112308_access.log?op=OPEN' -L -o aa.log
 local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
@@ -60,6 +53,21 @@ local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
 						log_path,
 						log_path)
 
+if seg then
+	local offset = seg*conf.segment_size
+	local length = conf.segment_size
+	cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
+						.." && curl --silent 'http://10.9.101.54:50070/webhdfs/v1%s?op=OPEN&offset=%d&length=%d' -L -o %s"
+						.." && gzip --fast %s",
+						gz_log_path,
+						gz_log_path,
+						hdfs_path,
+						offset,
+						length,
+						log_path,
+						log_path)
+end
+
 ngx.log(ngx.DEBUG, "cmd: ", cmd)
 
 local args = {socket = "unix:/tmp/shell.sock", timeout = 60000}
@@ -69,3 +77,21 @@ if status ~= 0 then
 	shell.execute("rm -f "..log_path.."*", args)
 end
 
+local function remove_file(file_name)
+	local args = {socket = "unix:/tmp/shell.sock", timeout = 10000}
+	local cmd = string.format("rm -f %s", file_name)
+	ngx.log(ngx.DEBUG, "removing files: ", cmd)
+	local status, out, err = shell.execute(cmd, args)
+	if status ~= 0 then
+		ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
+	end	
+end
+--确定是否是最后一个片段 最后一个片段不应该保留
+local max_seg = math.ceil(file_size/conf.segment_size) - 1
+if seg == max_seg then
+	local ok, err = ngx.timer.at(60, remove_file, gz_log_path)
+	if not ok then
+	 ngx.log(ngx.ERR, "failed to create timer: ", err)
+	 return
+	end
+end
