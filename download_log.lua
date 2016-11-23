@@ -85,10 +85,12 @@ local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
 						log_path,
 						log_path)
 
+ngx.log(ngx.DEBUG, "cmd: ", cmd)
+
 local args = {socket = "unix:/tmp/shell.sock", timeout = 60000}
 local status, out, err = shell.execute(cmd, args)
 if status ~= 0 then
-	ngx.log(ngx.ERR, "status: ", status, ", out: ", out, ", err: ", err)
+	ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
 	shell.execute("rm -f "..log_path.."*", args)
 end
 
