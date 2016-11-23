@@ -140,6 +140,8 @@ do
 	then
 		echo "hdfs dfs -appendToFile ${file_path} ${hadoop_dest_path} error !" | tee -a ${err_log}
 		let send_failure++
+		curl --silent "${send_request_url}?request=unlock&file_date=${file_date}&domain_name=${domain_name}&file_name=${file_name}"
+		continue
 	else
 		let send_success++
 		rm -f ${file_path}
