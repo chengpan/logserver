@@ -82,6 +82,7 @@ local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
 						.." && gzip --fast %s",
 						gz_log_path,
 						gz_log_path,
+						hdfs_path,
 						log_path,
 						log_path)
 
