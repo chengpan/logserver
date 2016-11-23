@@ -95,7 +95,7 @@ if status ~= 0 then
 	shell.execute("rm -f "..log_path.."*", args)
 end
 
-local exec_location = conf.gzip_download_location..gz_relative_path..".gz"
+local exec_location = "/"..gz_relative_path..".gz"
 ngx.log(ngx.DEBUG, "localtion: ", exec_location)
 return ngx.exec(exec_location)
 
