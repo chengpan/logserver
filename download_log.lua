@@ -77,7 +77,7 @@ if status ~= 0 then
 	shell.execute("rm -f "..log_path.."*", args)
 end
 
-local function remove_file(file_name)
+local function remove_file(premature, file_name)
 	local args = {socket = "unix:/tmp/shell.sock", timeout = 10000}
 	local cmd = string.format("rm -f %s", file_name)
 	ngx.log(ngx.DEBUG, "removing files: ", cmd)
@@ -89,6 +89,7 @@ end
 --确定是否是最后一个片段 最后一个片段不应该保留
 local max_seg = math.ceil(file_size/conf.segment_size) - 1
 if seg == max_seg then
+	ngx.log("this last segment needs removing: ", max_seg)
 	local ok, err = ngx.timer.at(60, remove_file, gz_log_path)
 	if not ok then
 	 ngx.log(ngx.ERR, "failed to create timer: ", err)
