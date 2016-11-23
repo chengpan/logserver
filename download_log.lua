@@ -9,9 +9,7 @@ local resty_string = require "resty/string"
 local request_uri = ngx.var.request_uri
 ngx.log(ngx.DEBUG, "request_uri: ", request_uri)
 return
-
-
-
+--[[
 local args = ngx.req.get_uri_args()
 local id = tonumber(args["id"])
 
@@ -105,4 +103,4 @@ local exec_location = "/"..gz_relative_path..".gz"
 ngx.log(ngx.DEBUG, "localtion: ", exec_location)
 return ngx.exec(exec_location)
 
-
+--]]
