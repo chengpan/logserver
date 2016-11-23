@@ -29,7 +29,10 @@ if m and #m[2] > 1 then
 end
 
 ngx.log(ngx.DEBUG, "hdfs_path: ", hdfs_path, ", seg: ", seg)
-return
+
+if true then
+	return
+end
 
 local file_size = webhdfs.get_file_size(hdfs_path)
 
