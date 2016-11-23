@@ -10,14 +10,14 @@ local file_date = args["file_date"]
 if not domain_name or not file_name or not file_date then
 	ngx.log(ngx.ERR, "no domain_name or file_name, ", domain_name, ", ", file_name,
 					", ", file_date)
-	ngx.exit(ngx.HTTP_ILLEGAL)
+	ngx.exit(ngx.HTTP_BAD_REQUEST)
 end
 
 local regex_expr = [=[^(small|big)_([0-9]{10})_access\.log$]=]
 local m = ngx.re.match(file_name, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "file_name not match regex: ", regex_expr, "file_name: ", file_name)
-	ngx.exit(ngx.HTTP_ILLEGAL)	
+	ngx.exit(ngx.HTTP_BAD_REQUEST)	
 end
 
 local file_type = m[1]
