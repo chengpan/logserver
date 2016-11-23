@@ -89,7 +89,7 @@ end
 --确定是否是最后一个片段 最后一个片段不应该保留
 local max_seg = math.ceil(file_size/conf.segment_size) - 1
 if seg == max_seg then
-	ngx.log("this last segment needs removing: ", max_seg)
+	ngx.log(ngx.DEBUG, "this last segment needs removing: ", max_seg)
 	local ok, err = ngx.timer.at(60, remove_file, gz_log_path)
 	if not ok then
 	 ngx.log(ngx.ERR, "failed to create timer: ", err)
