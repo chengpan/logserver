@@ -57,7 +57,7 @@ local args = {socket = "unix:/tmp/shell.sock", timeout = 10000}
 local status, out, err = shell.execute(cmd, args)
 ngx.log(ngx.DEBUG, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
 
-if status ~= 0 then
+if status == 0 then
 	ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
 	ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
