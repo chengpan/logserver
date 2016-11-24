@@ -19,7 +19,7 @@ elseif file_type == "big" then
 	file_type = 1
 end
 
-local query_sql = "select domain_name, date_hour,"
+local query_sql = "select id, domain_name, date_hour,"
 				.." if (file_type = 0, 'small', 'big') as file_type,"
 				.." hdfs_path from tb_hadoop_files where 2 > 1"
 
