@@ -43,6 +43,10 @@ end
 
 local max_seg = math.ceil(file_size/conf.segment_size) - 1
 ngx.log(ngx.DEBUG, "file_size: ", file_size, ", max_seg: ", max_seg)
+if seg > max_seg then
+	ngx.log(ngx.ERR, "seg exceeds max_seg: ", seg, " > ", max_seg)
+	ngx.exit(ngx.HTTP_NOT_FOUND)
+end
 
 --curl --silent 'http://106.75.31.237:50070/webhdfs/v1/logs/20161123/api.dmzj.com/small_2016112308_access.log?op=OPEN' -L -o aa.log
 local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
