@@ -51,6 +51,17 @@ if seg then
 	end
 end
 
+--检查是否正在打包或下载 方法就是看.log文件是否存在
+local cmd = string.format("stat %s", log_path)
+local args = {socket = "unix:/tmp/shell.sock", timeout = 10000}
+local status, out, err = shell.execute(cmd, args)
+ngx.log(ngx.DEBUG, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
+
+if status ~= 0 then
+	ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
+	ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
+
 --curl --silent 'http://106.75.31.237:50070/webhdfs/v1/logs/20161123/api.dmzj.com/small_2016112308_access.log?op=OPEN' -L -o aa.log
 local cmd = string.format("[ ! -f %s ] && mkdir -p `dirname %s`"
 						.." && curl --silent 'http://10.9.101.54:50070/webhdfs/v1%s?op=OPEN' -L -o %s"
