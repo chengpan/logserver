@@ -36,6 +36,12 @@ if file_type then
 	query_sql = query_sql.." and file_type = "..file_type
 end
 
+--最多截止到上一个小时
+--Returns the current time stamp (in the format yyyy-mm-dd hh:mm:ss)
+local cur_time_str = ngx.localtime()
+local cur_hour_time = string.sub(cur_time_str, 1, 13)..":00:00"
+query_sql = query_sql.." and date_hour < "..ngx.quote_sql_str(cur_hour_time)
+
 --排序并限制返回结果
 query_sql = query_sql.." order by date_hour desc limit "..conf.mysql_max_results
 
