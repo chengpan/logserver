@@ -3,7 +3,7 @@ local mysql = require "resty.mysql"
 local conf  = require "comm/conf"
 local util  = require "comm/util"
 local shell = require "resty/shell"
-local string = require "resty/string"
+local resty_string = require "resty/string"
 
 local mutex_dict = ngx.shared.mutex_dict
 
