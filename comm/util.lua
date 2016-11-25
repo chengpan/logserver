@@ -98,7 +98,7 @@ _M.file_copy = function (src_path, dest_path)
     	"unix:/tmp/file_copy5.sock"
 	}
 
-	local rand_sock_num = math.random(5)
+	local rand_sock_num = math.random(#unix_path_table)
 
     local sock = ngx.socket.tcp()
     local ok, err = sock:connect(unix_path_table[rand_sock_num])
@@ -141,11 +141,8 @@ end
 
 _M.get_log_dir = function (domain_name)
     local log_path_table = {
-        [1] = "/data/log_server/download/",
-        [2] = "/data/log_server/download/",
-        [3] = "/data/log_server/download/",
-        [4] = "/data/log_server/download/",
-        [5] = "/data/log_server/download/"
+        [1] = "/data1/log_server/download/",
+        [2] = "/data2/log_server/download/"
     }
 
     local log_path = domain_path_map_dict:get(domain_name)
@@ -155,7 +152,7 @@ _M.get_log_dir = function (domain_name)
     end
 
     local crc = ngx.crc32_short(domain_name)
-    local index = math.abs(crc % 5) + 1
+    local index = math.abs(crc % (#log_path_table)) + 1
     ngx.log(ngx.DEBUG, "index for ", domain_name, " is ", index)
 
     log_path = log_path_table[index]

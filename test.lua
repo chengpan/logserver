@@ -1,6 +1,7 @@
 local util  = require "comm/util"
 local webhdfs  = require "comm/webhdfs"
 local json  = require "cjson.safe"
+local domain_path_map_dict = ngx.shared.domain_path_map_dict
 
 --[[
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
@@ -72,6 +73,14 @@ end
 
 --测试webhdfs
 local args = ngx.req.get_uri_args()
+
+local dict_flush = args["flush_disk"]
+if dict_flush then
+	domain_path_map_dict:flush_all()
+	ngx.say("domain_path_map_dict flushed !")
+end
+
+
 local path = args["path"]
 if not path then
 	ngx.say("give me a path in hdfs, eg: url?path=/logs/20161122/auc.tangdou.com/big_2016112210_access.log")
