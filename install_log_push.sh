@@ -1,4 +1,4 @@
-download_script_url="http://106.75.0.234/upload_log.sh"
+download_script_url="http://106.75.7.142/upload_log.sh"
 crontab_backup="/tmp/crontab.bak"
 upload_sh_dir="/root/upload_log/"
 upload_sh_path="/root/upload_log/upload_log.sh"
