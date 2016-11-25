@@ -37,6 +37,18 @@ end
 if request == "unlock" then
 	ngx.log(ngx.DEBUG, "release mutex for: ", lock_file_key)
 	mutex_dict:delete(lock_file_key)
+
+	--之前的打包文件必须删除了
+	local gz_log_path = conf.gzip_log_dir..file_date.."/"..domain_name.."/"..file_name..".gz"
+	local cmd = string.format("[ -f %s ] && rm -f %s", gz_log_path, gz_log_path)
+	ngx.log(ngx.DEBUG, "cmd: ", cmd)
+
+	local args = {socket = "unix:/tmp/shell.sock", timeout = 5000}
+	local status, out, err = shell.execute(cmd, args)
+	ngx.log(ngx.DEBUG, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
+	if status ~= 0 and status ~= 256 then
+		ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
+	end	
 	ngx.exit(ngx.HTTP_OK)
 end
 
