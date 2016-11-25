@@ -74,7 +74,7 @@ end
 --测试webhdfs
 local args = ngx.req.get_uri_args()
 
-local dict_flush = args["flush_disk"]
+local dict_flush = args["flush"]
 if dict_flush then
 	domain_path_map_dict:flush_all()
 	ngx.say("domain_path_map_dict flushed !")
