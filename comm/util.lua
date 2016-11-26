@@ -148,6 +148,10 @@ _M.get_log_dir = function (domain_name)
         [5] = "/data5/log_server/download/"
     }
     
+    local index = math.random(#log_path_table)
+    return log_path_table[index]
+   
+--[[ 
     local log_path = domain_path_map_dict:get(domain_name)
     if log_path then
         ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " found in shared dict")
@@ -168,6 +172,7 @@ _M.get_log_dir = function (domain_name)
     end
 
     return log_path
+--]]
 end
 
 _M.del_log_dir = function (domain_name)
