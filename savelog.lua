@@ -3,7 +3,7 @@ local mysql = require "resty.mysql"
 local conf  = require "comm/conf"
 local util  = require "comm/util"
 local shell = require "resty/shell"
-local string = require "resty/string"
+local resty_string = require "resty/string"
 
 local http_method = ngx.req.get_method()
 if http_method ~= "POST" then
@@ -56,7 +56,8 @@ local store_dir = util.get_log_dir(domain_name)
 local file_dir  = store_dir..file_date.."/"..domain_name.."/"
 local file_path = file_dir..file_name
 
-local lock_file_key = "download"..domain_name..file_name
+--local lock_file_key = "download"..domain_name..file_name
+local lock_file_key = string.sub(file_path, 1, 7)..domain_name..file_name
 
 ngx.log(ngx.DEBUG, "appending ", tmp_body_file, " to ", file_path)
 
@@ -65,13 +66,17 @@ ngx.log(ngx.DEBUG, "appending ", tmp_body_file, " to ", file_path)
 local lock_file_status = util.get_mutex_lock(lock_file_key)
 if not lock_file_status then
     ngx.log(ngx.ERR, "can't lock file to write data")
+    util.del_log_dir(domain_name)
     ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
 
 local status, msg = util.file_copy(tmp_body_file, file_path)
 if status ~= 0 then
 	ngx.log(ngx.ERR, "status: ", status, ", msg: ", msg)
-	ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+	--ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+	--don't let it resend
+	ngx.say("upload_success")
+    ngx.exit(ngx.HTTP_OK)
 end
 
 local m, err = ngx.re.match(msg, "[0-9]+", "o")

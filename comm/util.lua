@@ -142,17 +142,19 @@ end
 _M.get_log_dir = function (domain_name)
     local log_path_table = {
         [1] = "/data1/log_server/download/",
-        [2] = "/data2/log_server/download/"
+        [2] = "/data2/log_server/download/",
+        [3] = "/data3/log_server/download/",
+        [4] = "/data4/log_server/download/",
+        [5] = "/data5/log_server/download/"
     }
-
+    
     local log_path = domain_path_map_dict:get(domain_name)
     if log_path then
         ngx.log(ngx.DEBUG, domain_name, "--->", log_path, " found in shared dict")
         return log_path
     end
 
-    local crc = ngx.crc32_short(domain_name)
-    local index = math.abs(crc % (#log_path_table)) + 1
+    local index = math.random(#log_path_table)
     ngx.log(ngx.DEBUG, "index for ", domain_name, " is ", index)
 
     log_path = log_path_table[index]
@@ -166,6 +168,10 @@ _M.get_log_dir = function (domain_name)
     end
 
     return log_path
+end
+
+_M.del_log_dir = function (domain_name)
+    domain_path_map_dict:delete(domain_name)
 end
 
 return _M

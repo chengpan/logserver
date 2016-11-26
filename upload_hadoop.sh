@@ -109,6 +109,7 @@ declare -i file_num=0
 
 while read file_path
 do
+    sleep 0.5s #so this program won't take too much resources
 	file_name=`basename ${file_path}` #small_2016112115_access.log
 	file_dir=`dirname ${file_path}` #/data/log_server/download/20161121/www.liebao.cn
 	file_dir_name=`basename ${file_dir}` #www.liebao.cn
@@ -126,7 +127,7 @@ do
 	if [ "${yes_to_send}" != "yes_to_send" ]
 	then
 		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
-		let send_failure++
+		#let send_failure++
 		continue
 	fi
 
@@ -161,11 +162,12 @@ done < ${tmp_file_list}
 finish_timestamp=`date +%s`
 run_time=`expr ${finish_timestamp} - ${start_timestamp}`
 
+date | tee -a ${err_log}
 echo "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}" | tee -a ${err_log}
 
 if [ ${send_failure} -gt 0 -o ${run_time} -gt 1800 ]
 then
-	send_warning "hadoop上传" "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}"
+	send_warning "hadoop上传" "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}, check ${err_log}"
 fi
 
 #删除2天前日志目录
