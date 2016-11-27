@@ -64,8 +64,10 @@ segments = math.ceil(file_size/conf.segment_size)
 
 local download_url_table = {}
 
---只提供分片下载的链接
-download_url_table[#download_url_table + 1] = conf.log_download_host..hdfs_path..".gz"
+--文件太大时不能直接下载
+if segments <= 3 then
+    --download_url_table[#download_url_table + 1] = conf.log_download_host..hdfs_path..".gz"
+end
 
 for i = 0, segments - 1 do
 	download_url_table[#download_url_table + 1] = string.format("%s.seg%03d.gz", conf.log_download_host..hdfs_path, i)

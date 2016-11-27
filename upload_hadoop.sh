@@ -109,7 +109,7 @@ declare -i file_num=0
 
 while read file_path
 do
-    sleep 0.5s #so this program won't take too much resources
+    sleep 1.5s #so this program won't take too much resources
 	file_name=`basename ${file_path}` #small_2016112115_access.log
 	file_dir=`dirname ${file_path}` #/data/log_server/download/20161121/www.liebao.cn
 	file_dir_name=`basename ${file_dir}` #www.liebao.cn
