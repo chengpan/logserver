@@ -3,6 +3,8 @@ local webhdfs  = require "comm/webhdfs"
 local json  = require "cjson.safe"
 local domain_path_map_dict = ngx.shared.domain_path_map_dict
 
+local headers = ngx.req.get_headers()
+
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
 ngx.log(ngx.DEBUG, "test lua file at: ", util.get_datetime())
 
@@ -18,6 +20,10 @@ ngx.say("limit_rate: ", ngx.var.limit_rate)
 ngx.say("request_method: ", ngx.var.request_method)
 ngx.say("remote_addr: ", ngx.var.remote_addr)
 ngx.say("X-Real-IP: ", ngx.var["X-Real-IP"])
+ngx.say("x-forwarded-for: ", ngx.var["x-forwarded-for"])
+ngx.say("x-forwarded-proto: ", ngx.var["x-forwarded-proto"])
+ngx.say("x-forwarded-for: ", headers["x-forwarded-for"])
+ngx.say("x-forwarded-proto: ", headers["x-forwarded-proto"])
 ngx.say("remote_port: ", ngx.var.remote_port)
 ngx.say("remote_user: ", ngx.var.remote_user)
 ngx.say("request_body_file: ", ngx.var.request_body_file)
