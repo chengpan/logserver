@@ -48,7 +48,7 @@ upload_failed_file_list=${upload_info_dir}"upload_failed_file_list"
 upload_err_log=${upload_info_dir}"err_log"
 upload_process_pid=${upload_info_dir}"upload_process_pid"
 upload_process_busy=${upload_info_dir}"upload_process_busy"
-upload_server="http://106.75.7.142/savelog.lua"
+upload_server="http://106.75.87.81/savelog.lua"
 
 #存放所有已经上传的文件信息以及出错信息
 [ -d ${upload_info_dir} ] || mkdir ${upload_info_dir}
