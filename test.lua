@@ -3,7 +3,6 @@ local webhdfs  = require "comm/webhdfs"
 local json  = require "cjson.safe"
 local domain_path_map_dict = ngx.shared.domain_path_map_dict
 
---[[
 ngx.log(ngx.DEBUG, "test lua file at: ", ngx.localtime())
 ngx.log(ngx.DEBUG, "test lua file at: ", util.get_datetime())
 
@@ -36,9 +35,6 @@ if jit then
 else
 	ngx.say(_VSERSION)
 end
-
-ngx.shared.shared_dict:flush_all()
---]]
 
 --[[
 local src_ip = ngx.var["X-Real-IP"] or ngx.var.remote_addr
