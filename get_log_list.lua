@@ -42,8 +42,8 @@ local cur_time_str = ngx.localtime()
 local cur_hour_time = string.sub(cur_time_str, 1, 13)..":00:00"
 query_sql = query_sql.." and date_hour < "..ngx.quote_sql_str(cur_hour_time)
 
---至少等待30分钟才能读取日志 30 + 60 = 90
-query_sql = query_sql.." and date_hour < timestampadd(minute, -90, current_timestamp())"
+--至少等待10分钟才能读取日志 10 + 60 = 70
+query_sql = query_sql.." and date_hour < timestampadd(minute, -70, current_timestamp())"
 
 --排序并限制返回结果
 query_sql = query_sql.." order by date_hour desc limit "..conf.mysql_max_results
