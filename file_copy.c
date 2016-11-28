@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <time.h>
 
-#define N (8*1024)
+#define N (1024*1024)
 
 #define LOG_PATH "/tmp/file_copy.log"
 

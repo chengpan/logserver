@@ -27,6 +27,15 @@ send_request_url="http://10.9.139.51/send_request.lua"
 record_file_url="http://10.9.139.51/record_hadoop_file.lua"
 hadoop_logs_dir="/logs/"
 
+I_am_alive=`curl --silent 'http://10.9.139.51/echo.lua' | grep 'I_am_alive'`
+if [ "${I_am_alive}" != "I_am_alive" ]
+then
+	echo "main log server down!" >> err_log
+	send_warning "server_down" "http://10.9.139.51/echo.lua not respond"
+	send_request_url="http://10.9.103.2/send_request.lua"
+	record_file_url="http://10.9.103.2/record_hadoop_file.lua"	
+fi
+
 echo "download_dir: ${download_dir}, where you store your logs"
 echo "temp_log_dir: ${temp_log_dir}, where I move the logs there and send them to hadoop"
 echo "working_log_dir: ${working_log_dir}, where I log everything in order to debug and info"
