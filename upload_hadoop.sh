@@ -113,6 +113,7 @@ wc -l ${tmp_file_list} | tee -a ${err_log}
 #一一检查上传
 declare -i send_success=0
 declare -i send_failure=0
+declare -i request_failure=0
 
 file_entries=`wc -l ${tmp_file_list} | awk '{print $1}'`
 declare -i file_num=0
@@ -137,7 +138,7 @@ do
 	if [ "${yes_to_send}" != "yes_to_send" ]
 	then
 		echo "try to send ${file_path} not permitted, msg: ${yes_to_send}" | tee -a ${err_log}
-		#let send_failure++
+		let request_failure++
 		continue
 	fi
 
@@ -173,11 +174,11 @@ finish_timestamp=`date +%s`
 run_time=`expr ${finish_timestamp} - ${start_timestamp}`
 
 date | tee -a ${err_log}
-echo "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}" | tee -a ${err_log}
+echo "run_time: ${run_time}, success : ${send_success}, send_failure: ${send_failure}, request_failure: ${request_failure}" | tee -a ${err_log}
 
-if [ ${send_failure} -gt 0 -o ${run_time} -gt 1800 ]
+if [ ${send_failure} -gt 0 -o ${run_time} -gt 1800 -o ${request_failure} -gt 10 ]
 then
-	send_warning "hadoop上传" "run_time: ${run_time}, success : ${send_success}, failures: ${send_failure}, check ${err_log}"
+	send_warning "hadoop上传" "run_time: ${run_time}, success : ${send_success}, send_failure: ${send_failure}, request_failure: ${request_failure}, check ${err_log}"
 fi
 
 #删除2天前日志目录

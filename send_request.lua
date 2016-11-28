@@ -21,8 +21,8 @@ end
 local lock_file_key = "hadoop"..domain_name..file_name
 
 if request == "lock" then
-	--30s应该够了
-	local ok, err, forcible = mutex_dict:add(lock_file_key, 1, 30)
+	--300s应该够了
+	local ok, err, forcible = mutex_dict:add(lock_file_key, 1, 300)
 	if ok then
 		ngx.log(ngx.DEBUG, "got mutex for: ", lock_file_key, ", forcible: ", forcible)
 		ngx.say("yes_to_send")
@@ -38,6 +38,8 @@ if request == "unlock" then
 	ngx.log(ngx.DEBUG, "release mutex for: ", lock_file_key)
 	mutex_dict:delete(lock_file_key)
 
+	--只提供分片下载
+--[[
 	--之前的打包文件必须删除了
 	local gz_log_path = conf.gzip_log_dir..file_date.."/"..domain_name.."/"..file_name..".gz"
 	local cmd = string.format("[ -f %s ] && rm -f %s", gz_log_path, gz_log_path)
@@ -49,6 +51,7 @@ if request == "unlock" then
 	if status ~= 0 and status ~= 256 then
 		ngx.log(ngx.ERR, "cmd: ", cmd, "status: ", status, ", out: ", out, ", err: ", err)
 	end	
+--]]	
 	ngx.exit(ngx.HTTP_OK)
 end
 
