@@ -27,7 +27,7 @@ send_request_url="http://10.9.139.51/send_request.lua"
 record_file_url="http://10.9.139.51/record_hadoop_file.lua"
 hadoop_logs_dir="/logs/"
 
-I_am_alive=`curl --silent 'http://10.9.139.51/echo.lua' | grep 'I_am_alive'`
+I_am_alive=`curl --silent --max-time 5 'http://10.9.139.51/echo.lua' | grep 'I_am_alive'`
 if [ "${I_am_alive}" != "I_am_alive" ]
 then
 	echo "main log server down!" >> err_log
