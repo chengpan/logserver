@@ -16,13 +16,5 @@ for k,v in pairs(args) do
 	ngx.say(k, " : ", v)
 end
 
-ngx.req.read_body()
-local data = ngx.req.get_body_data()
-
-if not data then
-	data = util.read_file_data(ngx.req.get_body_file())
-end
-
-ngx.say("body: ", data)
-
+ngx.say("I_am_alive")
 
