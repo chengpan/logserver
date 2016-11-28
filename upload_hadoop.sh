@@ -27,6 +27,9 @@ send_request_url="http://10.9.139.51/send_request.lua"
 record_file_url="http://10.9.139.51/record_hadoop_file.lua"
 hadoop_logs_dir="/logs/"
 
+[ -d ${working_log_dir} ] || mkdir -p ${working_log_dir}
+[ -d ${temp_log_dir} ] || mkdir -p ${temp_log_dir}
+
 I_am_alive=`curl --silent --max-time 5 'http://10.9.139.51/echo.lua' | grep 'I_am_alive'`
 if [ "${I_am_alive}" != "I_am_alive" ]
 then
@@ -46,8 +49,6 @@ echo "record_file_url: ${record_file_url}, record uploaded file in hadoop to mys
 echo "hadoop_logs_dir: ${hadoop_logs_dir}, where hadoop store its logs"
 echo "process_pid: ${process_pid}, the pid of current working process, $$"
 echo "process_busy: ${process_busy}, record message where two working process collide"
-
-[ -d ${working_log_dir} ] || mkdir -p ${working_log_dir}
 
 #保证只有一个进程在上传
 if [ -f ${process_pid} ]
