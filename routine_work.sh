@@ -41,6 +41,7 @@ echo "work starts here, at `date`" | tee -a ${err_log}
 start_timestamp=`date +%s`
 
 domain_names=`curl --silent --max-time 3 ${get_domains_url} | xargs`
+echo "downloading for $domain_names"
 for domain in ${domain_names}; do
 	echo "downloading for ${domain} at `date`" | tee -a ${err_log}
 	for hour in -1 -2 -3 -4 -5; do
