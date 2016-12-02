@@ -45,10 +45,15 @@ for i,v in ipairs(log_url_array) do
 		ngx.exit(res.status)
 	end
 
+	v.id = nil
+	v.dl_urls = {}
+
 	local download_urls = json.decode(res.body)
 	for ii, vv in ipairs(download_urls) do
-		ret_urls[#ret_urls + 1] = vv
+		v.dl_urls[#v.dl_urls + 1] = vv
 	end
+
+	ret_urls[#ret_urls + 1] = v
 end
 
 ngx.print(json.encode(ret_urls))
