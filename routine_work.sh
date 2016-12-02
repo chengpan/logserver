@@ -49,7 +49,7 @@ for domain in ${domain_names}; do
 			file_date=`date -d "${hour} hour" "+%Y%m%d"`
 			file_date_hour=`date -d "${hour} hour" "+%Y%m%d%H"`
 			hdfs_file_location="/logs/"${file_date}"/"${domain}"/"${file_type}"_"${file_date_hour}"_access.log"
-			local_file_location=${logs_dir}${file_date}"/"${domain}"/"${file_type}"_"${file_date_hour}"_access.log"
+			local_file_location=${logs_dir}${file_date}"/"${domain}"/"${file_type}"_"${file_date_hour}"_access.log.gz"
 			
 			echo "downloading ${hdfs_file_location} to ${local_file_location}"
 
