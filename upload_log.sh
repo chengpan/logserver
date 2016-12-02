@@ -15,7 +15,7 @@ function send_warning()
 	then
 		echo "send warning: ${title}, ${content}"
 		echo ${current_timestamp} > ${last_warning_file}
-		curl -H 'Accept:application/json' --data-urlencode "id=10075" --data-urlencode "title=${title}" --data-urlencode "content=${content}" http://106.75.0.234/monitor.cgi
+		curl -H 'Accept:application/json' --data-urlencode "id=10075" --data-urlencode "title=${title}" --data-urlencode "content=${content}" http://106.75.87.81/monitor.cgi
 	fi
 }
 
