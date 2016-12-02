@@ -87,4 +87,7 @@ rm -rf ${old_log_dir}
 #删除10天未访问的日志
 find ${logs_dir} -type f -atime +10 -delete
 
+#进程结束
+rm -f ${process_pid}
+
 
