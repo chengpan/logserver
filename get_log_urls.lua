@@ -26,9 +26,7 @@ end
 
 local ret_urls = {}
 for i,v in ipairs(log_url_array) do
-	local index = string.find(v, "?id=")
-	local query_str = string.sub(v, index, -1)
-	local query_url = "/get_log_list.lua"..query_str
+	local query_url = "/get_log_list.lua?id="..v.id
 	local res = ngx.location.capture(query_url)
 	if not res then
 		ngx.log(ngx.ERR, "no res, ", query_url)
