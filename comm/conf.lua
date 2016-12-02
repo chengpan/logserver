@@ -19,7 +19,13 @@ _M.gzip_log_dir = "/data/log_server/logs/"
 _M.gzip_download_location = "/logs/"
 _M.download_whole_domains = {
 	"img.antutu.com",
-	"file.antutu.com"
+	"file.antutu.com",
+	"mvvideo1.meitudata.com",
+	"mvvideo2.meitudata.com",
+	"mvvideo3.meitudata.com",
+	"mvvideo4.meitudata.com",
+	"mvvideo10.meitudata.com",
+	"mvvideo11.meitudata.com"
 }
 
 return _M
