@@ -30,6 +30,11 @@ if type(m[2]) == "string" then
 end
 ngx.log(ngx.DEBUG, "hdfs_path: ", hdfs_path, ", seg: ", seg)
 
+if not seg then
+	--全文件下载不用这个接口
+    return
+end
+
 local gz_log_path = document_root..request_uri
 local log_path = string.sub(gz_log_path, 1, -4)
 ngx.log(ngx.DEBUG, "log_path: ", log_path, ", gz_log_path: ", gz_log_path)
@@ -49,10 +54,6 @@ if seg then
 		ngx.log(ngx.ERR, "seg exceeds max_seg: ", seg, " > ", max_seg)
 		ngx.exit(ngx.HTTP_NOT_FOUND)
 	end
-end
-
-if not seg and max_seg > 3 then
-    ngx.exit(ngx.HTTP_NOT_FOUND)
 end
 
 --[[

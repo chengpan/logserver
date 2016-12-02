@@ -179,4 +179,18 @@ _M.del_log_dir = function (domain_name)
     domain_path_map_dict:delete(domain_name)
 end
 
+_M.find_in_arr = function (val, arr)
+    if not val or type(arr) ~= "table" then
+        return false
+    end
+
+    for i,v in ipairs(arr) do
+        if val == v then
+            return true
+        end
+    end
+
+    return false
+end
+
 return _M

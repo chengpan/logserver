@@ -17,5 +17,9 @@ _M.segment_size = 500*1024*1024
 _M.log_download_host = "http://106.75.87.81"
 _M.gzip_log_dir = "/data/log_server/logs/"
 _M.gzip_download_location = "/logs/"
+_M.download_whole_domains = {
+	"img.antutu.com",
+	"file.antutu.com"
+}
 
 return _M
