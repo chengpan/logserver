@@ -89,7 +89,7 @@ else
 fi
 
 #上传失败的要重传
-[ -f ${upload_failed_file_list} ] && cat ${upload_failed_file_list} | grep -v "aabbccdd" >> ${tmp_upload_file_list}
+[ -f ${upload_failed_file_list} ] && cat ${upload_failed_file_list} | grep -v "aabbccdd" | sort | uniq >> ${tmp_upload_file_list}
 
 declare -i upload_success=0
 declare -i upload_failures=0
