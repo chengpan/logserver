@@ -22,6 +22,10 @@ local request_uri = ngx.var.request_uri
 local document_root = ngx.var.document_root
 ngx.log(ngx.DEBUG, "request_uri: ", request_uri, "document_root: ", document_root)
 
+if not request_uri then
+	ngx.exit(ngx.HTTP_BAD_REQUEST)
+end
+
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.gz
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.seg000.gz
 
@@ -30,7 +34,7 @@ local regex_expr = [=[^(.*_access\.log)(\.seg[0-9]{3})?\.gz$]=]
 local m = ngx.re.match(request_uri, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "request_uri not match regex: ", regex_expr, "request_uri: ", request_uri)
-	ngx.exit(ngx.HTTP_BAD_REQUEST)	
+	return	
 end
 
 ngx.log(ngx.DEBUG, "m[1]: ", m[1], ", m[2]: ", m[2])
