@@ -29,6 +29,7 @@ end
 
 local ret_urls = {}
 local last_domain_name = ""
+local last_date_hour = ""
 for i,v in ipairs(log_url_array) do
 	local query_url = "/get_download_info.lua?id="..v.id
 	ngx.log(ngx.DEBUG, "query_url: ", query_url)
@@ -48,8 +49,14 @@ for i,v in ipairs(log_url_array) do
 
 	local download_urls = json.decode(res.body)
 
-	if last_domain_name ~= v.domain_name then
+	if last_domain_name == v.domain_name and  last_date_hour == v.date_hour then
+		local last_dl_urls = ret_urls[#ret_urls].dl_urls
+		for ii, vv in ipairs(download_urls) do
+			last_dl_urls[#last_dl_urls + 1] = vv
+		end		
+	else
 		last_domain_name = v.domain_name
+		last_date_hour = v.date_hour
 	
 		v.id = nil
 		v.file_type = nil
@@ -62,11 +69,6 @@ for i,v in ipairs(log_url_array) do
 		end
 
 		ret_urls[#ret_urls + 1] = v
-	else
-		local last_dl_urls = ret_urls[#ret_urls].dl_urls
-		for ii, vv in ipairs(download_urls) do
-			last_dl_urls[#last_dl_urls + 1] = vv
-		end		
 	end
 end
 
