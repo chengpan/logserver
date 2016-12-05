@@ -6,6 +6,13 @@ local webhdfs  = require "comm/webhdfs"
 local shell = require "resty/shell"
 local resty_string = require "resty/string"
 
+local req_method = ngx.req.get_method()
+if req_method ~= 'GET' then
+	ngx.log(ngx.DEBUG, "req_method not GET: ", req_method)
+	return
+end
+
+
 local request_uri = ngx.var.request_uri
 local document_root = ngx.var.document_root
 ngx.log(ngx.DEBUG, "request_uri: ", request_uri, "document_root: ", document_root)
