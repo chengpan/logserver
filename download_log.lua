@@ -12,7 +12,8 @@ if req_method ~= 'GET' then
 	return
 end
 
-if util.http_head_check() then
+local http_status = util.http_head_check()
+if http_status == 200 then
 	ngx.log(ngx.DEBUG, "this file is found in another ip")
 	ngx.exit(ngx.HTTP_OK)
 end
