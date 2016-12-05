@@ -46,7 +46,7 @@ query_sql = query_sql.." and date_hour < "..ngx.quote_sql_str(cur_hour_time)
 query_sql = query_sql.." and date_hour < timestampadd(minute, -70, current_timestamp())"
 
 --排序并限制返回结果
-query_sql = query_sql.." order by date_hour desc limit "..conf.mysql_max_results
+query_sql = query_sql.." order by date_hour desc, domain_name limit "..conf.mysql_max_results
 
 ngx.log(ngx.DEBUG, "query_sql: ", query_sql)
 

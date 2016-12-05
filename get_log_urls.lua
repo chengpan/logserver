@@ -28,6 +28,7 @@ if #log_url_array == 0 then
 end
 
 local ret_urls = {}
+local last_domain_name = ""
 for i,v in ipairs(log_url_array) do
 	local query_url = "/get_download_info.lua?id="..v.id
 	ngx.log(ngx.DEBUG, "query_url: ", query_url)
@@ -45,18 +46,31 @@ for i,v in ipairs(log_url_array) do
 		ngx.exit(res.status)
 	end
 
-	v.id = nil
-	v.dl_urls = {}
-
 	local download_urls = json.decode(res.body)
-	for ii, vv in ipairs(download_urls) do
-		v.dl_urls[#v.dl_urls + 1] = vv
-	end
 
-	ret_urls[#ret_urls + 1] = v
+	if last_domain_name ~= v.domain_name then
+		last_domain_name = v.domain_name
+	
+		v.id = nil
+		v.file_type = nil
+		v.file_size = nil
+		v.segments = nil
+		
+		v.dl_urls = {}
+		for ii, vv in ipairs(download_urls) do
+			v.dl_urls[#v.dl_urls + 1] = vv
+		end
+
+		ret_urls[#ret_urls + 1] = v
+	else
+		local last_dl_urls = ret_urls[#ret_urls].dl_urls
+		for ii, vv in ipairs(download_urls) do
+			last_dl_urls[#last_dl_urls + 1] = vv
+		end		
+	end
 end
 
-ngx.print(json.encode(ret_urls))
+ngx.print({ret_code = 0, ret_msg = "success", json.encode(ret_urls)})
 ngx.exit(ngx.HTTP_OK)
 
 
