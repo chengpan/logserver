@@ -66,9 +66,11 @@ segments = math.ceil(file_size/conf.segment_size)
 local download_url_table = {}
 
 --部分域名能直接下载整个文件
+--[[
 if util.find_in_arr(domain_name, conf.download_whole_domains) then
     download_url_table[#download_url_table + 1] = conf.log_download_host..hdfs_path..".gz"
 end
+--]]
 
 for i = 0, segments - 1 do
 	download_url_table[#download_url_table + 1] = string.format("%s.seg%03d.gz", conf.log_download_host..hdfs_path, i)
