@@ -23,7 +23,7 @@ ngx.log(ngx.DEBUG, "get_log_list: ", json.encode(res))
 local log_url_array = json.decode(res.body)
 if #log_url_array == 0 then
 	ngx.log(ngx.DEBUG, "no logs found")
-	ngx.print(json.encode(json.empty_array))
+	ngx.print(json.encode{ret_code = 0, ret_msg = "success", host_urls = json.empty_array})
 	ngx.exit(ngx.HTTP_OK)
 end
 
@@ -55,7 +55,7 @@ for i,v in ipairs(log_url_array) do
 		v.file_type = nil
 		v.file_size = nil
 		v.segments = nil
-		
+
 		v.dl_urls = {}
 		for ii, vv in ipairs(download_urls) do
 			v.dl_urls[#v.dl_urls + 1] = vv
@@ -70,7 +70,7 @@ for i,v in ipairs(log_url_array) do
 	end
 end
 
-ngx.print({ret_code = 0, ret_msg = "success", json.encode(ret_urls)})
+ngx.print(json.encode{ret_code = 0, ret_msg = "success", host_urls = ret_urls})
 ngx.exit(ngx.HTTP_OK)
 
 
