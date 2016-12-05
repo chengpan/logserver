@@ -12,18 +12,18 @@ if req_method ~= 'GET' then
 	return
 end
 
-local http_status = util.http_head_check()
-if http_status == 200 then
-	ngx.log(ngx.DEBUG, "this file is found in another ip")
-	return ngx.exec(request_uri.."_proxy_pass")
-end
-
 local request_uri = ngx.var.request_uri
 local document_root = ngx.var.document_root
 ngx.log(ngx.DEBUG, "request_uri: ", request_uri, "document_root: ", document_root)
 
 if not request_uri then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)
+end
+
+local http_status = util.http_head_check()
+if http_status == 200 then
+	ngx.log(ngx.DEBUG, "this file is found in another ip")
+	return ngx.exec(request_uri.."_proxy_pass")
 end
 
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.gz
