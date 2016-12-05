@@ -15,7 +15,7 @@ end
 local http_status = util.http_head_check()
 if http_status == 200 then
 	ngx.log(ngx.DEBUG, "this file is found in another ip")
-	ngx.exit(ngx.HTTP_OK)
+	return ngx.exec(request_uri.."_proxy_pass")
 end
 
 local request_uri = ngx.var.request_uri
@@ -34,7 +34,7 @@ local regex_expr = [=[^(.*_access\.log)(\.seg[0-9]{3})?\.gz$]=]
 local m = ngx.re.match(request_uri, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "request_uri not match regex: ", regex_expr, "request_uri: ", request_uri)
-	return ngx.exec(request_uri.."_proxy_pass")
+	return
 end
 
 ngx.log(ngx.DEBUG, "m[1]: ", m[1], ", m[2]: ", m[2])
