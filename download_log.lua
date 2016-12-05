@@ -34,7 +34,7 @@ local regex_expr = [=[^(.*_access\.log)(\.seg[0-9]{3})?\.gz$]=]
 local m = ngx.re.match(request_uri, regex_expr, "o")
 if not m then
 	ngx.log(ngx.ERR, "request_uri not match regex: ", regex_expr, "request_uri: ", request_uri)
-	return	
+	return ngx.exec(request_uri.."_proxy_pass")
 end
 
 ngx.log(ngx.DEBUG, "m[1]: ", m[1], ", m[2]: ", m[2])
