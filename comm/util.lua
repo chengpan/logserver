@@ -193,4 +193,30 @@ _M.find_in_arr = function (val, arr)
     return false
 end
 
+
+--只为检查log日志是否已经下载
+_M.http_head_check = function ()
+
+    local another_ip = ""
+    if ngx.var.server_name == "logserver1" then
+        another_ip = "http://10.9.103.2"
+    else
+        another_ip = "http://10.9.139.51"
+    end
+
+    local url = another_ip..":"..ngx.var.server_port..ngx.var.request_uri
+
+    ngx.log(ngx.DEBUG, "checking another: ", url)
+
+    local httpc = http.new()
+    local res, err = httpc:request_uri(url, {method = "HEAD"})
+
+    if not res then
+        ngx.log(ngx.ERR, "failed to request: ", err)
+        return false
+    end 
+
+    return res.status 
+end
+
 return _M

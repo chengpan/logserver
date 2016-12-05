@@ -12,6 +12,10 @@ if req_method ~= 'GET' then
 	return
 end
 
+if util.http_head_check() then
+	ngx.log(ngx.DEBUG, "this file is found in another ip")
+	ngx.exit(ngx.HTTP_OK)
+end
 
 local request_uri = ngx.var.request_uri
 local document_root = ngx.var.document_root
