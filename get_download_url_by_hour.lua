@@ -7,8 +7,10 @@ local shell = require "resty/shell"
 local resty_string = require "resty/string"
 
 local args = ngx.req.get_uri_args()
+local all_domains = conf.download_whole_domains
+local result_set = {err_code = 0, err_msg = "success", domains = all_domains}
 
-local domain_name = args["domain_name"]
+local domain_name = args["domain_name"] or all_domains[1] --必须有值
 local start_time = tonumber(args["start_time"])
 local end_time = tonumber(args["end_time"])
 local file_type = args["file_type"]
@@ -19,12 +21,11 @@ elseif file_type == "big" then
 	file_type = 1
 end
 
-if domain_name then
-	if not util.find_in_arr(domain_name, conf.download_whole_domains) then
-		--返回只有配置的那几个域名才可以下载
-		ngx.print(json.encode(json.empty_array))
-		ngx.exit(ngx.HTTP_OK)
-	end
+if not util.find_in_arr(domain_name, all_domains) then
+	--返回只有配置的那几个域名才可以下载
+	result_set.urls = json.empty_array
+	ngx.print(json.encode(result_set))
+	ngx.exit(ngx.HTTP_OK)
 end
 
 local query_sql = "select id, domain_name, date_hour,"
@@ -87,7 +88,8 @@ end
 
 --空结果
 if #res < 1 then
-	ngx.print(json.encode(json.empty_array))
+	result_set.urls = json.empty_array
+	ngx.print(json.encode(result_set))
 	ngx.exit(ngx.HTTP_OK)
 end
 
@@ -99,7 +101,8 @@ for i,v in ipairs(res) do
 end
 
 --返回成功信息
-ngx.print(json.encode(res))
+result_set.urls = res
+ngx.print(json.encode(result_set))
 ngx.exit(ngx.HTTP_OK)
 
 
