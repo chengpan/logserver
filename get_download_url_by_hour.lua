@@ -19,6 +19,14 @@ elseif file_type == "big" then
 	file_type = 1
 end
 
+if domain_name then
+	if not util.find_in_arr(domain_name, conf.download_whole_domains) then
+		--返回只有配置的那几个域名才可以下载
+		ngx.print(json.encode(json.empty_array))
+		ngx.exit(ngx.HTTP_OK)
+	end
+end
+
 local query_sql = "select id, domain_name, date_hour,"
 				.." if (file_type = 0, 'small', 'big') as file_type,"
 				.." hdfs_path from tb_hadoop_files where 2 > 1"
@@ -86,6 +94,7 @@ end
 for i,v in ipairs(res) do
 	v.file_size = webhdfs.get_file_size(v.hdfs_path)
 	v.segments = math.ceil(v.file_size/conf.segment_size)
+	v.download_url = conf.log_download_host..v.hdfs_path..".gz"
 	v.hdfs_path = nil
 end
 
