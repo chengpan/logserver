@@ -29,7 +29,7 @@ if not util.find_in_arr(domain_name, all_domains) then
 end
 
 local query_sql = "select distinct domain_name, date(date_hour) as date,"
-				.." if (file_type = 0, 'small', 'big') as file_type,"
+				.." if (file_type = 0, 'small', 'big') as file_type"
 				.." from tb_hadoop_files where date_hour < current_date()"
 
 if domain_name then
