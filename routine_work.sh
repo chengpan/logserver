@@ -46,6 +46,7 @@ for domain in ${domain_names}; do
 	echo "downloading for ${domain} at `date`" | tee -a ${err_log}
 	for hour in -1 -2 -3 -4 -5; do
 		for file_type in "small" "big"; do
+            echo "----------------------------------------------------------------------------------------------------------"
 			file_date=`date -d "${hour} hour" "+%Y%m%d"`
 			file_date_hour=`date -d "${hour} hour" "+%Y%m%d%H"`
 			hdfs_file_location="/logs/"${file_date}"/"${domain}"/"${file_type}"_"${file_date_hour}"_access.log"
@@ -92,12 +93,13 @@ done
 
 success=0
 for domain in ${domain_names}; do
-	if [ $success -lt 1 ]; then
+	if [ $success -gt 1 ]; then
 		break
 	fi
 
 	echo "downloading the whole day log for ${domain} at `date`" | tee -a ${err_log}
 	for file_type in "small" "big"; do
+        echo "----------------------------------------------------------------------------------------------------------"
 		file_date=`date -d "-1 day" "+%Y%m%d"`
 		hdfs_file_dir="/logs/"${file_date}"/"${domain}
 		hdfs_file_location="/logs/"${file_date}"/"${domain}"/"${file_type}"*"
