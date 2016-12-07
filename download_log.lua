@@ -128,6 +128,7 @@ local function remove_file(premature, file_name)
 end
 
 --确定是否是最后一个片段 最后一个片段不应该保留
+--[[
 if seg == max_seg then
 	ngx.log(ngx.DEBUG, "this last segment needs removing: ", max_seg)
 	local ok, err = ngx.timer.at(600, remove_file, gz_log_path)
@@ -136,3 +137,4 @@ if seg == max_seg then
 	 return
 	end
 end
+--]]

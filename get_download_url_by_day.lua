@@ -28,9 +28,9 @@ if not util.find_in_arr(domain_name, all_domains) then
 	ngx.exit(ngx.HTTP_OK)
 end
 
-local query_sql = "select id, domain_name, date_hour,"
+local query_sql = "select distinct domain_name, date(date_hour) as date,"
 				.." if (file_type = 0, 'small', 'big') as file_type,"
-				.." hdfs_path from tb_hadoop_files where 2 > 1"
+				.." from tb_hadoop_files where date_hour < current_date()"
 
 if domain_name then
 	query_sql = query_sql.." and domain_name = "..ngx.quote_sql_str(domain_name)
@@ -45,17 +45,8 @@ if file_type then
 	query_sql = query_sql.." and file_type = "..file_type
 end
 
---最多截止到上一个小时
---Returns the current time stamp (in the format yyyy-mm-dd hh:mm:ss)
-local cur_time_str = ngx.localtime()
-local cur_hour_time = string.sub(cur_time_str, 1, 13)..":00:00"
-query_sql = query_sql.." and date_hour < "..ngx.quote_sql_str(cur_hour_time)
-
---至少等待10分钟才能读取日志 10 + 60 = 70
-query_sql = query_sql.." and date_hour < timestampadd(minute, -70, current_timestamp())"
-
 --排序并限制返回结果
-query_sql = query_sql.." order by date_hour desc, domain_name limit "..conf.mysql_max_results
+query_sql = query_sql.." order by date desc, domain_name limit "..conf.mysql_max_results
 
 ngx.log(ngx.DEBUG, "query_sql: ", query_sql)
 
@@ -94,10 +85,9 @@ if #res < 1 then
 end
 
 for i,v in ipairs(res) do
-	v.file_size = webhdfs.get_file_size(v.hdfs_path)
-	v.segments = math.ceil(v.file_size/conf.segment_size)
-	v.download_url = conf.log_download_host..v.hdfs_path..".gz"
-	v.hdfs_path = nil
+	local date_str = string.sub(v.date, 1, 4)..string.sub(v.date, 6, 7)..string.sub(v.date, 9, 10).."/"
+	local day_gz_file = v.file_type.."_"..date_str.."_access.log.gz"
+	v.download_url = conf.log_download_host..conf.gzip_download_location..date_str..day_gz_file
 end
 
 --返回成功信息
