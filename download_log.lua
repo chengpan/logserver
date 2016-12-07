@@ -20,10 +20,15 @@ if not request_uri then
 	ngx.exit(ngx.HTTP_BAD_REQUEST)
 end
 
-local http_status = util.http_head_check()
-if http_status == 200 then
-	ngx.log(ngx.DEBUG, "this file is found in another ip")
-	return ngx.exec(request_uri.."_proxy_pass")
+local http_status = util.http_head_check_local()
+
+--本地不存在就proxy_pass
+if http_status ~= 200 then
+	http_status = util.http_head_check()
+	if http_status == 200 then
+		ngx.log(ngx.DEBUG, "this file is found in another ip")
+		return ngx.exec(request_uri.."_proxy_pass")
+	end
 end
 
 --/logs/20161122/dh3.kimg.cn/small_2016112216_access.log.gz

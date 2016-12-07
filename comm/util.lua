@@ -194,7 +194,7 @@ _M.find_in_arr = function (val, arr)
 end
 
 
---只为检查log日志是否已经下载
+--只为检查log日志在另一个ip是否已经下载
 _M.http_head_check = function ()
 
     local another_ip = ""
@@ -207,6 +207,25 @@ _M.http_head_check = function ()
     local url = another_ip..":"..ngx.var.server_port..ngx.var.request_uri
 
     ngx.log(ngx.DEBUG, "checking another: ", url)
+
+    local httpc = http.new()
+    local res, err = httpc:request_uri(url, {method = "HEAD"})
+
+    if not res then
+        ngx.log(ngx.ERR, "failed to request: ", err)
+        return false
+    end 
+
+    return res.status 
+end
+
+--检查log日志是否在本地已经下载
+_M.http_head_check_local = function ()
+
+    local another_ip = "http://127.0.0.1"
+    local url = another_ip..":"..ngx.var.server_port..ngx.var.request_uri
+
+    ngx.log(ngx.DEBUG, "checking local: ", url)
 
     local httpc = http.new()
     local res, err = httpc:request_uri(url, {method = "HEAD"})
