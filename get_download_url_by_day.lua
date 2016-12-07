@@ -87,7 +87,10 @@ end
 for i,v in ipairs(res) do
 	local date_str = string.sub(v.date, 1, 4)..string.sub(v.date, 6, 7)..string.sub(v.date, 9, 10)
 	local day_gz_file = v.file_type.."_"..date_str.."_access.log.gz"
-	v.download_url = conf.log_download_host..conf.gzip_download_location..date_str.."/"..day_gz_file
+	v.download_url = conf.log_download_host..conf.gzip_download_location
+						..date_str
+						.."/"..v.domain_name
+						.."/"..day_gz_file
 end
 
 --返回成功信息
