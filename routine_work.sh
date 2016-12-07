@@ -93,7 +93,7 @@ done
 
 success=0
 for domain in ${domain_names}; do
-	if [ $success -gt 1 ]; then
+	if [ $success -gt 5 ]; then
 		break
 	fi
 
